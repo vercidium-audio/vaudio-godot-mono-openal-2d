@@ -1,4 +1,4 @@
-global using static vaudio_godot_mono_openal_2d.Logger;
+global using static vaudio_godot_mono_openal.Logger;
 
 global using System;
 global using System.Collections.Generic;
@@ -7,4 +7,4 @@ global using OpenAL;
 global using OpenAL.managed;
 global using Godot;
 
-namespace vaudio_godot_mono_openal_23d;
+namespace vaudio_godot_mono_openal;

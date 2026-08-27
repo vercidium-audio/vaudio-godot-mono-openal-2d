@@ -1,7 +1,7 @@
-global using static vaudio_godot_mono_openal_2d.Extensions;
-global using static vaudio_godot_mono_openal_2d.GlobalHelpers;
+global using static vaudio_godot_mono_openal.Extensions;
+global using static vaudio_godot_mono_openal.GlobalHelpers;
 
-namespace vaudio_godot_mono_openal_2d;
+namespace vaudio_godot_mono_openal;
 
 internal static class Extensions
 {
