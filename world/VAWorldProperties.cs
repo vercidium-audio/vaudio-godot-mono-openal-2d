@@ -44,7 +44,7 @@ public partial class VAWorld
         set
         {
             _Size = value;
-            UpdateGizmos();
+            QueueRedraw();
 
             if (world != null)
                 world.Size = ToVAudio(value);
@@ -62,7 +62,7 @@ public partial class VAWorld
         set
         {
             _BoundsColor = value;
-            UpdateGizmos();
+            QueueRedraw();
         }
     }
 

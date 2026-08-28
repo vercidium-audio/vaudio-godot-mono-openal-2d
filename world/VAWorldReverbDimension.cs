@@ -16,13 +16,13 @@ public partial class VAWorld
         effect.effectSlotGain = Math.Max(0, effect.effectSlotGain);
         effect.effectSlotGain = Math.Min(1, effect.effectSlotGain);
 
-        // TODO - separate pan for late reverb and reflections
+        // TODO - separate pan for late reverb and reflections. OpenAL pan is always 3D; the 2D world maps onto its XY plane with Z fixed at 0.
         effect.lateReverbPan[0] = pan.X;
         effect.lateReverbPan[1] = pan.Y;
-        effect.lateReverbPan[2] = pan.Z;
+        effect.lateReverbPan[2] = 0;
 
         effect.reflectionsPan[0] = pan.X;
         effect.reflectionsPan[1] = pan.Y;
-        effect.reflectionsPan[2] = pan.Z;
+        effect.reflectionsPan[2] = 0;
     }
 }

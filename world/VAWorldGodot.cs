@@ -86,9 +86,8 @@ public partial class VAWorld
         if (Rotation != 0f)
             Rotation = 0f;
 
-        // Rebuild the bounds gizmo whenever the node moves, whether from the viewport gizmo,
+        // Redraw the bounds gizmo whenever the node moves, whether from the viewport gizmo,
         // the Inspector's Position field, or code.
-        UpdateGizmos();
         QueueRedraw();
 
         if (world != null)
