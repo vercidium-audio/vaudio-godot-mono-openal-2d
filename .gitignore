@@ -6,3 +6,6 @@
 # Ignore user-provided vaudio SDK binaries
 /bin/*
 !/bin/.gitkeep
+
+# Local planning notes
+/godot_2d_plan.md
