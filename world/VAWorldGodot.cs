@@ -25,6 +25,9 @@ public partial class VAWorld
 
         world = new();
 
+        // Godot's 2D canvas is Y-down; tell the debug window so its render + viewport sync match.
+        world.CoordinateSystem = vaudio.CoordinateSystem.Default;
+
         world.LogCallback = Log;
         world.Position = ToVAudio(Position);
         world.Size = ToVAudio(Size);

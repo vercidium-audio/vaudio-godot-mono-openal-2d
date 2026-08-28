@@ -265,7 +265,6 @@ public partial class VAWorld
         var rotation = data[1].As<float>();
         var zoom = data[2].As<float>();
 
-        world.ManualCamera = false;
         world.CameraPosition = ToVAudio(centre);
         world.CameraRotation = rotation;
         world.CameraZoom = zoom;
