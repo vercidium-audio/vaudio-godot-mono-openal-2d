@@ -193,7 +193,7 @@ public partial class VAWorld
                     points = points,
                     position = position,
                     rotation = rotation,
-                    scale = scale.X,
+                    scale = ToVAudio(scale),
                     enclosed = true,
                     material = material,
                 });
@@ -211,7 +211,7 @@ public partial class VAWorld
                     points = points,
                     position = position,
                     rotation = rotation,
-                    scale = scale.X,
+                    scale = ToVAudio(scale),
                     enclosed = false,
                     material = material,
                 });
@@ -288,7 +288,7 @@ public partial class VAWorld
         {
             polygonPrim.position = position;
             polygonPrim.rotation = rotation;
-            polygonPrim.scale = scale.X;
+            polygonPrim.scale = ToVAudio(scale);
         }
     }
 
@@ -317,7 +317,7 @@ public partial class VAWorld
             points = points,
             position = position,
             rotation = rotation,
-            scale = scale.X,
+            scale = ToVAudio(scale),
             enclosed = true,
             material = material,
             UseFlatTransmission = useFlatTransmission || IsConcave(points),
@@ -330,7 +330,7 @@ public partial class VAWorld
             Decompose(polygon.GlobalTransform, out var updatedPosition, out var updatedRotation, out var updatedScale);
             prim.position = updatedPosition;
             prim.rotation = updatedRotation;
-            prim.scale = updatedScale.X;
+            prim.scale = ToVAudio(updatedScale);
         }));
     }
 
@@ -359,7 +359,7 @@ public partial class VAWorld
             points = points,
             position = position,
             rotation = rotation,
-            scale = scale.X,
+            scale = ToVAudio(scale),
             // A Line2D is an open polyline, never a closed loop
             enclosed = false,
             material = material,
@@ -372,7 +372,7 @@ public partial class VAWorld
             Decompose(line.GlobalTransform, out var updatedPosition, out var updatedRotation, out var updatedScale);
             prim.position = updatedPosition;
             prim.rotation = updatedRotation;
-            prim.scale = updatedScale.X;
+            prim.scale = ToVAudio(updatedScale);
         }));
     }
 
