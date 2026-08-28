@@ -2,6 +2,8 @@
 
 Raytraced audio plugin for Mono Godot 4 with realistic muffling, reverb, ambience and visualisation. Uses OpenAL Soft for playback, spatialisation, filters and effects.
 
+For Standard Godot (not C#), please use [this plugin](https://github.com/vercidium-audio/vaudio-godot-native-openal-2d-release/releases).
+
 ## Features
 
 - Muffle sounds in real time
@@ -54,7 +56,7 @@ First, it will add this text to your project's `.csproj` file:
 
 <ItemGroup>
     <Reference Include="vaudio">
-        <HintPath>addons\vaudio-godot-mono-openal-3d\bin\vaudio.dll</HintPath>
+        <HintPath>addons\vaudio-godot-mono-openal-2d\bin\vaudio.dll</HintPath>
     </Reference>
 </ItemGroup>
 ```
@@ -98,5 +100,5 @@ This plugin uses OpenAL Soft, which is licensed under LGPL v2.1. Source is avail
 To solve the error below, create a C# solution, then disable and re-enable the plugin:
 
 ```
-[vaudio-godot-mono-openal-3d] No C# solution found. This plugin requires C# - please create a C# solution (Project → Tools → C# → Create C# Solution) and then re-enable this plugin
+[vaudio-godot-mono-openal-2d] No C# solution found. This plugin requires C# - please create a C# solution (Project → Tools → C# → Create C# Solution) and then re-enable this plugin
 ```
