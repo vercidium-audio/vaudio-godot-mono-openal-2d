@@ -182,7 +182,7 @@ public partial class VAWorld
 
     [ExportGroup("AirAbsorption")]
 
-    float _MetersPerUnit = 1;
+    float _MetersPerUnit = 0.1f;
     /// <summary>
     /// Gets meters per world unit. Affects air absorption and reverb calculation.
     /// Also affects OpenAL's own air-absorption and reverb decay math.
