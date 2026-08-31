@@ -114,10 +114,6 @@ public partial class VAWorld
         else if (shape is CapsuleShape2D capsule)
         {
             // TODO - make a capsule primitive in 2D
-            // No dedicated capsule primitive in 2D - approximate with an oval whose Y radius spans
-            // the full half-height (cylinder portion + one cap) and whose X radius is the capsule
-            // radius. Good enough for occlusion/reverb; the rounded ends are slightly fuller than a
-            // true capsule.
             world.AddPrimitive(prim = new vaudio.OvalPrimitive()
             {
                 center = position,
@@ -178,9 +174,6 @@ public partial class VAWorld
         }
         else if (shape is ConcavePolygonShape2D concavePolygon)
         {
-            // ConcavePolygonShape2D.Segments is a flat list of segment endpoint pairs - treat it as
-            // an open polyline (enclosed = false), matching how the 3D plugin treats a concave mesh
-            // as raw triangle soup rather than a solid.
             var points = Conversions.ConvertPointsToVectorList(concavePolygon.Segments);
 
             if (points.Count >= 3)
@@ -354,9 +347,6 @@ public partial class VAWorld
         }));
     }
 
-    // A convex polygon can safely use the exact "time spent inside" transmission model; a concave
-    // one can be crossed more than twice, so it must fall back to flat transmission. Cheap
-    // cross-product sign test around the loop.
     static bool IsConcave(List<vaudio.Vector> points)
     {
         int sign = 0;

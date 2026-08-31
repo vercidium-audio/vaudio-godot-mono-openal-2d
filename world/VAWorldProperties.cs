@@ -14,9 +14,6 @@ public partial class VAWorld
         "global_skew", "global_transform",
     ];
 
-    // The bounds rect is always axis-aligned starting at Position (see _Notification's
-    // NotificationTransformChanged handler and the 2D gizmo plugin), so rotation/scale would
-    // be misleading in the Inspector - hide them, matching the native plugin's VAWorld.
     public override void _ValidateProperty(Dictionary property)
     {
         string name = property["name"].AsStringName();

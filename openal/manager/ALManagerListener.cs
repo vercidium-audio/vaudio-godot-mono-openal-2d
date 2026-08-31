@@ -1,8 +1,5 @@
 namespace vaudio_godot_mono_openal;
 
-// 2D listener state for ALManager - position vector plus a single rotation angle. Runtime-API-only,
-// driven from VAWorldGodot each frame. Shared body is in common/openal/manager/.
-// OpenAL is a 3D API: the 2D world maps onto its XY plane, listener up is a constant +Z.
 public static unsafe partial class ALManager
 {
     static Vector2 _listenerPosition;

@@ -16,9 +16,7 @@ partial class TransformWatcher : Node2D
         if (what != NotificationTransformChanged)
             return;
 
-        // Godot only re-queues NOTIFICATION_TRANSFORM_CHANGED for a Node2D once its cached global
-        // transform has been read again - without this touch, only the first move after the node
-        // enters the tree ever fires.
+        // Godot only re-queues NOTIFICATION_TRANSFORM_CHANGED for a Node2D once its cached global transform has been read again. Without this line, only the first move after the node enters the tree ever fires
         _ = GlobalTransform;
 
         OnTransformChanged?.Invoke();

@@ -1,8 +1,5 @@
 namespace vaudio_godot_mono_openal;
 
-// VAEmitter (and its subclasses VAListener, and via VARaytracedSource: VASource, VASourceLeech,
-// VAStreamSource, ...) has no visible representation of its own in the 2D editor, so draw a small
-// brand-green dot at its origin. Editor-only. Mirrors the 3D addon's VANodeGizmoPlugin sphere.
 public partial class VAEmitter
 {
     // Brand green, matching icons/vercidium.svg's fill.
