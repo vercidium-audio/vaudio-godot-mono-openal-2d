@@ -6,24 +6,20 @@ public partial class VAWorld
 
     public override void _EnterTree()
     {
-        // Node2D.Position/Transform can't be overridden or shadowed in a way the engine/editor
-        // will actually call (Inspector edits and gizmo drags go straight through the engine's
-        // native set_position, bypassing any C# property) - NOTIFICATION_TRANSFORM_CHANGED is
-        // the only hook that fires uniformly for all of them, so opt into it here.
         SetNotifyTransform(true);
 
         if (Engine.IsEditorHint())
             return;
 
-        // Ensure the OpenAL device/context exists before creating reverb effects below - GenEffect
-        // silently fails with AL_INVALID_OPERATION (and returns effectID = 0) if called before a
-        // context is current.
         ALManager.Ensure();
 
         // Cache the scene root since we access it often
         SceneRoot = GetTree().CurrentScene as Node2D;
 
         world = new();
+
+        // Godot's 2D canvas is Y-down; tell the debug window so its render + viewport sync match.
+        world.CoordinateSystem = vaudio.CoordinateSystem.Godot2D;
 
         world.LogCallback = Log;
         world.Position = ToVAudio(Position);
@@ -79,10 +75,6 @@ public partial class VAWorld
         if (what != NotificationTransformChanged)
             return;
 
-        // The bounds rect is always axis-aligned starting at Position (see VAWorldProperties.
-        // _ValidateProperty, which hides rotation/scale in the Inspector) - but the viewport's
-        // Rotate tool bypasses the Inspector and can still rotate the node directly, so snap it
-        // back out here too.
         if (Rotation != 0f)
             Rotation = 0f;
 

@@ -31,32 +31,12 @@ public partial class VAWorld
                 AddPrimitive(child, material, useFlatTransmission, true);
     }
 
-    // Re-registers a single node's raytracing primitive after its "Vercidium Audio" material or
-    // use-flat-transmission metadata changed in the Inspector while the game is running - removes
-    // the old primitive if one exists, then re-adds it using the node's current metadata. Only
-    // ever called on the running game's own VAWorld instance, via the debugger message capture
-    // registered in VAWorldDebugger.cs - a custom EditorInspectorPlugin control has no way to
-    // reach this VAWorld directly, since it only ever runs against the editor's own local copy of
-    // the scene, whose world is always null.
     public void SyncPrimitive(Node node)
     {
-        // Guards against being called before InitializeScene has run this frame - should always be
-        // non-null in practice, since this is only invoked via the debugger message capture, which
-        // is only registered once the running game exists.
         if (world == null)
             return;
 
-        // Recursive, matching InitializeScene's own top-level AddPrimitive calls - the edited node
-        // itself often has no geometry of its own (e.g. a plain Node2D grouping node), with the
-        // material/use-flat-transmission override only taking effect on its descendants. Unlike
-        // OnNodeAdded/OnNodeRemoved (non-recursive - the NodeAdded/NodeRemoved signals they handle
-        // already fire once per node), this is a single one-shot call for the whole edited subtree,
-        // so it has to walk it itself.
         RemovePrimitive(node, true);
-
-        // AddPrimitive re-reads each node's current vercidium_audio_material/
-        // vercidium_audio_use_flat_transmission metadata itself - MaterialType.Air/true here are
-        // just the fallback for a node with no metadata at all.
         AddPrimitive(node, vaudio.MaterialType.Air, true, true);
     }
 
@@ -89,9 +69,6 @@ public partial class VAWorld
         return new VAPrimitiveRef { Primitive = prim, Watcher = watcher };
     }
 
-    // The 2D vaudio primitives take a scalar position/rotation/scale rather than a transform matrix,
-    // so decompose the node's global Transform2D here. Skew is dropped - none of the 2D primitives
-    // model it.
     static void Decompose(Transform2D transform, out vaudio.Vector position, out float rotation, out Vector2 scale)
     {
         position = ToVAudio(transform.Origin);
@@ -136,10 +113,7 @@ public partial class VAWorld
         }
         else if (shape is CapsuleShape2D capsule)
         {
-            // No dedicated capsule primitive in 2D - approximate with an oval whose Y radius spans
-            // the full half-height (cylinder portion + one cap) and whose X radius is the capsule
-            // radius. Good enough for occlusion/reverb; the rounded ends are slightly fuller than a
-            // true capsule.
+            // TODO - make a capsule primitive in 2D
             world.AddPrimitive(prim = new vaudio.OvalPrimitive()
             {
                 center = position,
@@ -193,16 +167,13 @@ public partial class VAWorld
                     points = points,
                     position = position,
                     rotation = rotation,
-                    scale = scale.X,
+                    scale = ToVAudio(scale),
                     enclosed = true,
                     material = material,
                 });
         }
         else if (shape is ConcavePolygonShape2D concavePolygon)
         {
-            // ConcavePolygonShape2D.Segments is a flat list of segment endpoint pairs - treat it as
-            // an open polyline (enclosed = false), matching how the 3D plugin treats a concave mesh
-            // as raw triangle soup rather than a solid.
             var points = Conversions.ConvertPointsToVectorList(concavePolygon.Segments);
 
             if (points.Count >= 3)
@@ -211,7 +182,7 @@ public partial class VAWorld
                     points = points,
                     position = position,
                     rotation = rotation,
-                    scale = scale.X,
+                    scale = ToVAudio(scale),
                     enclosed = false,
                     material = material,
                 });
@@ -288,7 +259,7 @@ public partial class VAWorld
         {
             polygonPrim.position = position;
             polygonPrim.rotation = rotation;
-            polygonPrim.scale = scale.X;
+            polygonPrim.scale = ToVAudio(scale);
         }
     }
 
@@ -317,7 +288,7 @@ public partial class VAWorld
             points = points,
             position = position,
             rotation = rotation,
-            scale = scale.X,
+            scale = ToVAudio(scale),
             enclosed = true,
             material = material,
             UseFlatTransmission = useFlatTransmission || IsConcave(points),
@@ -330,7 +301,7 @@ public partial class VAWorld
             Decompose(polygon.GlobalTransform, out var updatedPosition, out var updatedRotation, out var updatedScale);
             prim.position = updatedPosition;
             prim.rotation = updatedRotation;
-            prim.scale = updatedScale.X;
+            prim.scale = ToVAudio(updatedScale);
         }));
     }
 
@@ -359,7 +330,7 @@ public partial class VAWorld
             points = points,
             position = position,
             rotation = rotation,
-            scale = scale.X,
+            scale = ToVAudio(scale),
             // A Line2D is an open polyline, never a closed loop
             enclosed = false,
             material = material,
@@ -372,13 +343,10 @@ public partial class VAWorld
             Decompose(line.GlobalTransform, out var updatedPosition, out var updatedRotation, out var updatedScale);
             prim.position = updatedPosition;
             prim.rotation = updatedRotation;
-            prim.scale = updatedScale.X;
+            prim.scale = ToVAudio(updatedScale);
         }));
     }
 
-    // A convex polygon can safely use the exact "time spent inside" transmission model; a concave
-    // one can be crossed more than twice, so it must fall back to flat transmission. Cheap
-    // cross-product sign test around the loop.
     static bool IsConcave(List<vaudio.Vector> points)
     {
         int sign = 0;

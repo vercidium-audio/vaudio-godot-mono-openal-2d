@@ -50,10 +50,6 @@ public partial class VAVisualisation : Node2D
     MultiMeshInstance2D multimeshInstance;
     ShaderMaterial shaderMaterial;
 
-    // Ring-buffer write cursor into multimesh's instances - each callback invocation appends
-    // RayCount * BounceCount new instances here, wrapping once the buffer is full. The buffer is
-    // sized (see RequiredInstanceCount) to hold every batch still fading at once, so by the time
-    // the cursor wraps back around, that instance has already faded out.
     int nextInstance = 0;
 
     bool waitingForParent = false;
@@ -207,10 +203,6 @@ public partial class VAVisualisation : Node2D
             Multimesh = multimesh,
             Material = shaderMaterial,
 
-            // VisualisationData positions are already in world/canvas space - TopLevel makes this
-            // node's own transform (left at identity) the effective global transform, so those
-            // positions can be written straight into instance transforms instead of being
-            // re-relativised to a moving parent every callback.
             TopLevel = true,
             Transform = Transform2D.Identity,
         };
