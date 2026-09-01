@@ -11,7 +11,7 @@ public partial class VAWorld
         if (Engine.IsEditorHint())
             return;
 
-        ALManager.Ensure();
+        AudioManager.Ensure();
 
         // Cache the scene root since we access it often
         SceneRoot = GetTree().CurrentScene as Node2D;
@@ -55,7 +55,7 @@ public partial class VAWorld
         // Create reverb effects
         OnDeviceRecreated();
 
-        if (!ALManager.Initialised)
+        if (!AudioManager.Initialised)
         {
             LogError("The godot-mono-openal addon is not enabled. Ensure godot-mono-openal is enabled in Project Settings > Plugins (try toggling it off and on if it's already enabled)");
         }
@@ -130,8 +130,8 @@ public partial class VAWorld
         if (Engine.IsEditorHint())
             return;
 
-        ALManager.UnregisterDeviceDestroyedCallback(OnDeviceDestroyed);
-        ALManager.UnregisterDeviceRecreatedCallback(OnDeviceRecreated);
+        AudioManager.UnregisterDeviceDestroyedCallback(OnDeviceDestroyed);
+        AudioManager.UnregisterDeviceRecreatedCallback(OnDeviceRecreated);
 
         GetTree().NodeAdded -= OnNodeAdded;
         GetTree().NodeRemoved -= OnNodeRemoved;
@@ -174,16 +174,20 @@ public partial class VAWorld
                 NoListenerWarningLogged = true;
             }
         }
-        else if (ALManager.Initialised)
+        else if (AudioManager.Initialised)
         {
-            // Sync the AL listener to our main listener
-            ALManager.ListenerPosition = listener.GlobalPosition;
-            ALManager.ListenerRotation = listener.GlobalRotation;
+            // Sync the backend's listener to our main listener. VAWorld owns the 2D rotation ->
+            // forward/up conversion so the backend interface stays dimension-agnostic.
+            float rotation = listener.GlobalRotation;
+            var forward = new Vector3(Mathf.Cos(rotation), Mathf.Sin(rotation), 0);
+
+            AudioManager.Backend.SetListenerPosition(new Vector3(listener.GlobalPosition.X, listener.GlobalPosition.Y, 0));
+            AudioManager.Backend.SetListenerOrientation(forward, new Vector3(0, 0, 1));
         }
 
-        // ALManager is a static class with no Node._Process of its own - VAWorld drives its tick
-        // the same way it already drives world.Update() for the raytracer.
-        ALManager.Update();
+        // The backend has no Node._Process of its own - VAWorld drives its tick the same way it
+        // already drives world.Update() for the raytracer.
+        AudioManager.Update();
 
         world.Update();
     }
