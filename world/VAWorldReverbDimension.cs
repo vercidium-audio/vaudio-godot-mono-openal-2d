@@ -4,7 +4,7 @@ public partial class VAWorld
 {
     // 2D implementation of common/world/VAWorldReverb.cs's ApplyGroupedEAXPan - derives the
     // listener-relative pan from the listener's single rotation angle.
-    partial void ApplyGroupedEAXPan(vaudio.EAXReverb eax, ALReverbEffect effect)
+    partial void ApplyGroupedEAXPan(vaudio.EAXReverb eax, AudioReverbEffect effect)
     {
         if (eax.RelativeDirections == null || !eax.RelativeDirections.TryGetValue(listener.emitter, out var pan))
             return;

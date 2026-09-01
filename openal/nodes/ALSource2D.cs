@@ -1,5 +1,3 @@
-using OpenALSource = global::OpenAL.managed.ALSource;
-
 namespace vaudio_godot_mono_openal;
 
 [Tool]
@@ -24,11 +22,14 @@ public partial class ALSource2D : ALSource
         set => UpdateProperty(ref _referenceDistance, MathF.Max(0, value), (v, source) => source.SetReferenceDistance(v));
     }
 
-    protected override void ConfigureSource(OpenALSource source)
+    // OpenAL is always a 3D API - 2D position maps onto the XY plane with Z left at 0.
+    Vector3 SpatialPosition => new(GlobalPosition.X, GlobalPosition.Y, 0);
+
+    protected override void ConfigureSource(IAudioSourceHandle source)
     {
         source.SetMaxDistance(MaxDistance);
         source.SetReferenceDistance(ReferenceDistance);
-        source.SetPosition(GlobalPosition);
+        source.SetPosition(SpatialPosition);
     }
 
     public override void _Process(double delta)
@@ -39,6 +40,6 @@ public partial class ALSource2D : ALSource
             return;
 
         foreach (var s in sources)
-            s.SetPosition(GlobalPosition);
+            s.SetPosition(SpatialPosition);
     }
 }

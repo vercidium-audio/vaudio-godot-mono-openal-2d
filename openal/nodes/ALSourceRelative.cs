@@ -1,5 +1,3 @@
-using OpenALSource = global::OpenAL.managed.ALSource;
-
 namespace vaudio_godot_mono_openal;
 
 // A sound source relative to the listener with zero offset, e.g. footsteps, ambience, music.
@@ -7,9 +5,9 @@ namespace vaudio_godot_mono_openal;
 [Tool]
 public partial class ALSourceRelative : ALSource
 {
-    protected override void ConfigureSource(OpenALSource source)
+    protected override void ConfigureSource(IAudioSourceHandle source)
     {
         source.SetRelative(true);
-        source.SetPosition(Vector2.Zero);
+        source.SetPosition(Vector3.Zero);
     }
 }
