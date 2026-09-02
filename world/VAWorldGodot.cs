@@ -8,6 +8,11 @@ public partial class VAWorld
     {
         SetNotifyTransform(true);
 
+        // A VAWorld only has a position - if it was rotated/scaled/skewed while parented to another
+        // node and then unparented, those bake into its own transform. Reset them here so the debug
+        // window and primitive baking aren't thrown off by an inherited rotation.
+        NormalizeTransform();
+
         if (Engine.IsEditorHint())
             return;
 
@@ -76,8 +81,7 @@ public partial class VAWorld
         if (what != NotificationTransformChanged)
             return;
 
-        if (Rotation != 0f)
-            Rotation = 0f;
+        NormalizeTransform();
 
         // Redraw the bounds gizmo whenever the node moves, whether from the viewport gizmo,
         // the Inspector's Position field, or code.
@@ -85,6 +89,20 @@ public partial class VAWorld
 
         if (world != null)
             world.Position = ToVAudio(Position);
+    }
+
+    // A VAWorld is position-only. Force rotation/scale/skew back to their defaults if anything
+    // (a parent's transform baked in on reparent, a stray Inspector edit, code) has changed them.
+    void NormalizeTransform()
+    {
+        if (Rotation != 0f)
+            Rotation = 0f;
+
+        if (Scale != Vector2.One)
+            Scale = Vector2.One;
+
+        if (Skew != 0f)
+            Skew = 0f;
     }
 
     void OnDeviceRecreated()
