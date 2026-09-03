@@ -91,8 +91,6 @@ public partial class VAWorld
             world.Position = ToVAudio(Position);
     }
 
-    // A VAWorld is position-only. Force rotation/scale/skew back to their defaults if anything
-    // (a parent's transform baked in on reparent, a stray Inspector edit, code) has changed them.
     void NormalizeTransform()
     {
         if (Rotation != 0f)
