@@ -3,9 +3,9 @@ namespace vaudio_godot_mono_openal;
 public partial class VAWorld
 {
     void AddPrimitive(Node node, vaudio.MaterialType material, bool recursive) =>
-        AddPrimitive(node, material, false, PropagateFilter.Default, recursive);
+        AddPrimitive(node, material, false, PropagateMode.All, recursive);
 
-    void AddPrimitive(Node node, vaudio.MaterialType material, bool useFlatTransmission, PropagateFilter filter, bool recursive)
+    void AddPrimitive(Node node, vaudio.MaterialType material, bool useFlatTransmission, PropagateMode filter, bool recursive)
     {
         // A node's own material meta always wins and resets the propagation filter for its subtree
         bool hasOwnMaterial = node.HasMeta(MATERIAL_META_KEY);
@@ -13,7 +13,7 @@ public partial class VAWorld
         if (hasOwnMaterial)
         {
             material = GetMaterial(node);
-            filter = PropagateFilter.Default;
+            filter = PropagateMode.All;
         }
 
         // Use this specific transmission setting rather than the parent's
@@ -21,7 +21,7 @@ public partial class VAWorld
             useFlatTransmission = node.GetMeta(USE_FLAT_TRANSMISSION_META_KEY).As<bool>();
 
         // A propagation filter declared here constrains the cascade into this node's descendants
-        filter = ReadPropagateFilter(node, filter);
+        filter = ReadPropagateMode(node, filter);
 
         // An inherited material only applies to this node if it passes the inherited filter
         var effectiveMaterial = hasOwnMaterial || PassesPropagationFilter(node, filter)
@@ -46,11 +46,11 @@ public partial class VAWorld
 
     // Whether a cascading material should apply to this node.
     // Only inherited materials are gated - a node with its own material is always included
-    bool PassesPropagationFilter(Node node, PropagateFilter filter)
+    bool PassesPropagationFilter(Node node, PropagateMode filter)
     {
         bool isCollider = node is CollisionShape2D;
 
-        switch (filter.Mode)
+        switch (filter)
         {
             case PropagateMode.Colliders when !isCollider:
                 return false;
@@ -72,7 +72,7 @@ public partial class VAWorld
             return;
 
         RemovePrimitive(node, true);
-        AddPrimitive(node, vaudio.MaterialType.Air, true, PropagateFilter.Default, true);
+        AddPrimitive(node, vaudio.MaterialType.Air, true, PropagateMode.All, true);
     }
 
     // Re-evaluate every node against the current layer masks - used when CollisionLayers changes

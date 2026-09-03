@@ -14,8 +14,7 @@ public partial class ALSource
 
     public void UpdateFilter(float gain, float gainHF, bool fullReverb = false)
     {
-        if (!ALManager.Initialised)
-            return;
+        ALManager.Ensure();
 
         if (filter == null)
             filter = new(gain, gainHF);
@@ -34,7 +33,6 @@ public partial class ALSource
     }
 
     bool streamsErrorLogged = false;
-    bool alWarningLogged = false;
     int lastPlayedStreamIndex = -1;
     static Random random = new();
 
@@ -62,6 +60,8 @@ public partial class ALSource
 
     public virtual bool Play()
     {
+        ALManager.Ensure();
+
         var streamIndex = PickStreamIndex();
 
         if (streamIndex < 0)
@@ -70,17 +70,6 @@ public partial class ALSource
             {
                 LogWarning($"Unable to play the ALSource {Name} because its Streams property is not set");
                 streamsErrorLogged = true;
-            }
-
-            return false;
-        }
-
-        if (!ALManager.Initialised)
-        {
-            if (!alWarningLogged)
-            {
-                LogWarning($"Unable to play the ALSource {Name} because the ALManager has not been initialised yet. Ensure the autoload is set up correctly.");
-                alWarningLogged = true;
             }
 
             return false;

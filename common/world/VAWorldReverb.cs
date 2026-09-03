@@ -49,11 +49,8 @@ public partial class VAWorld
             var ambientGainLF = listener.AmbientFilter.GainLF;
             var ambientGainHF = listener.AmbientFilter.GainHF;
 
-            if (ALManager.Initialised)
-            {
-                ambientFilter ??= new(ambientGainLF, ambientGainHF);
-                ambientFilter.SetGain(ambientGainLF, ambientGainHF);
-            }
+            ambientFilter ??= new(ambientGainLF, ambientGainHF);
+            ambientFilter.SetGain(ambientGainLF, ambientGainHF);
         }
 
         // Apply raytraced EAX results to ALReverbEffects
