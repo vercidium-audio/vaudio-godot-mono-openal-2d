@@ -7,36 +7,37 @@ public partial class VAWorld
 
     void AddPrimitive(Node node, vaudio.MaterialType material, bool useFlatTransmission, PropagateMode filter, bool recursive)
     {
-        // A node's own material meta always wins and resets the propagation filter for its subtree
         bool hasOwnMaterial = node.HasMeta(MATERIAL_META_KEY);
 
         if (hasOwnMaterial)
         {
+            // A node's own material always wins and resets the propagation filter
             material = GetMaterial(node);
             filter = PropagateMode.All;
+        }
+
+        // Get this node's filter (if any). Defaults to the current filter
+        filter = ReadPropagateMode(node, filter);
+
+        if (!hasOwnMaterial && !PassesPropagationFilter(node, filter))
+        {
+            // Reset to air if it fails the propagation filter
+            material = vaudio.MaterialType.Air;
         }
 
         // Use this specific transmission setting rather than the parent's
         if (node.HasMeta(USE_FLAT_TRANSMISSION_META_KEY))
             useFlatTransmission = node.GetMeta(USE_FLAT_TRANSMISSION_META_KEY).As<bool>();
 
-        // A propagation filter declared here constrains the cascade into this node's descendants
-        filter = ReadPropagateMode(node, filter);
-
-        // An inherited material only applies to this node if it passes the inherited filter
-        var effectiveMaterial = hasOwnMaterial || PassesPropagationFilter(node, filter)
-            ? material
-            : vaudio.MaterialType.Air;
-
         // Ignore nodes without materials
-        if (effectiveMaterial != vaudio.MaterialType.Air)
+        if (material != vaudio.MaterialType.Air)
         {
             if (node is CollisionShape2D collisionShape)
-                CreateVAudioPrimitive(collisionShape, effectiveMaterial);
+                CreateVAudioPrimitive(collisionShape, material);
             else if (node is Polygon2D polygon)
-                CreateVAudioPrimitive(polygon, effectiveMaterial, useFlatTransmission);
+                CreateVAudioPrimitive(polygon, material, useFlatTransmission);
             else if (node is Line2D line)
-                CreateVAudioPrimitive(line, effectiveMaterial);
+                CreateVAudioPrimitive(line, material);
         }
 
         if (recursive)
@@ -44,8 +45,7 @@ public partial class VAWorld
                 AddPrimitive(child, material, useFlatTransmission, filter, true);
     }
 
-    // Whether a cascading material should apply to this node.
-    // Only inherited materials are gated - a node with its own material is always included
+    // Check whether a cascading material should reach this node
     bool PassesPropagationFilter(Node node, PropagateMode filter)
     {
         bool isCollider = node is CollisionShape2D;
@@ -58,8 +58,7 @@ public partial class VAWorld
                 return false;
         }
 
-        // 2D has no render-layer concept for visuals - only colliders are layer-filtered,
-        // against the VAWorld's CollisionLayers mask. Every non-collider node always passes.
+        // In 2D, only colliders are filtered
         if (isCollider && node.GetParentOrNull<CollisionObject2D>() is { } body)
             return (body.CollisionLayer & CollisionLayers) != 0;
 
