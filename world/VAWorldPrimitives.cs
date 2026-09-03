@@ -75,13 +75,17 @@ public partial class VAWorld
         AddPrimitive(node, vaudio.MaterialType.Air, true, PropagateFilter.Default, true);
     }
 
-    // Re-evaluate every node against the current layer masks - used when Layers / CollisionLayers
-    // change at runtime, so nodes that now match get added and nodes that no longer match get removed.
+    // Re-evaluate every node against the current layer masks - used when CollisionLayers changes
+    // at runtime, so nodes that now match get added and nodes that no longer match get removed.
     void RebuildPrimitives()
     {
-        Node root = GetTree()?.Root;
+        // Godot runs [Export] setters during scene deserialization, before _EnterTree. This world is still null then, so bail early
+        if (world == null || !IsInsideTree())
+            return;
 
-        if (world == null || root == null)
+        Node root = GetTree().Root;
+
+        if (root == null)
             return;
 
         foreach (var child in root.GetChildren())
