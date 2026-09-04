@@ -13,6 +13,8 @@ public partial class VAStreamSource : VARaytracedSource
 
     public bool OpenStream(int format, int frequency)
     {
+        ALManager.Ensure();
+        
         CloseStream();
 
         var sourceID = AL.GenSource();
