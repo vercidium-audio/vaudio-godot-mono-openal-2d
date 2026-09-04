@@ -1,8 +1,9 @@
 namespace vaudio_godot_mono_openal;
 
 public enum PropagateMode
-{ 
-    All = 0,
+{
+    Inherit = 0,
+    All,
     Colliders,
     Visuals
 }
@@ -23,9 +24,10 @@ public partial class VAWorld
 
         return node.GetMeta(PROPAGATE_META_KEY).As<string>().ToLowerInvariant() switch
         {
+            "all" => PropagateMode.All,
             "colliders" => PropagateMode.Colliders,
             "visuals" => PropagateMode.Visuals,
-            _ => PropagateMode.All,
+            _ => inherited,
         };
     }
 

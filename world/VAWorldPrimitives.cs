@@ -11,19 +11,12 @@ public partial class VAWorld
 
         if (hasOwnMaterial)
         {
-            // A node's own material always wins and resets the propagation filter
+            // A node's own material always wins
             material = GetMaterial(node);
-            filter = PropagateMode.All;
         }
 
-        // Get this node's filter (if any). Defaults to the current filter
+        // Get this node's filter (if any). Defaults to the inherited filter
         filter = ReadPropagateMode(node, filter);
-
-        if (!hasOwnMaterial && !PassesPropagationFilter(node, filter))
-        {
-            // Reset to air if it fails the propagation filter
-            material = vaudio.MaterialType.Air;
-        }
 
         // Use this specific transmission setting rather than the parent's
         if (node.HasMeta(USE_FLAT_TRANSMISSION_META_KEY))
@@ -32,12 +25,15 @@ public partial class VAWorld
         // Ignore nodes without materials
         if (material != vaudio.MaterialType.Air)
         {
-            if (node is CollisionShape2D collisionShape)
-                CreateVAudioPrimitive(collisionShape, material);
-            else if (node is Polygon2D polygon)
-                CreateVAudioPrimitive(polygon, material, useFlatTransmission);
-            else if (node is Line2D line)
-                CreateVAudioPrimitive(line, material);
+            if (hasOwnMaterial || PassesPropagationFilter(node, filter))
+            {
+                if (node is CollisionShape2D collisionShape)
+                    CreateVAudioPrimitive(collisionShape, material);
+                else if (node is Polygon2D polygon)
+                    CreateVAudioPrimitive(polygon, material, useFlatTransmission);
+                else if (node is Line2D line)
+                    CreateVAudioPrimitive(line, material);
+            }
         }
 
         if (recursive)
