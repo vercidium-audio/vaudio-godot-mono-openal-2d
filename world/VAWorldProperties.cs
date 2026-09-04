@@ -98,6 +98,27 @@ public partial class VAWorld
     }
 
 
+    [ExportGroup("Layers")]
+
+    uint _CollisionLayers = 0xFFFFF;
+    /// <summary>
+    /// The collision layers that should affect raytracing. A collider only inherits a cascading material if its body's collision layer is in this mask. A collider with its own material is always included.
+    /// </summary>
+    [Export(PropertyHint.Layers2DPhysics)]
+    public uint CollisionLayers
+    {
+        get => _CollisionLayers;
+        set
+        {
+            if (_CollisionLayers == value)
+                return;
+
+            _CollisionLayers = value;
+            RebuildPrimitives();
+        }
+    }
+
+
     [ExportGroup("OpenAL")]
 
     float _MasterVolume = 1;
@@ -397,8 +418,15 @@ public partial class VAWorld
         {
             _RenderingEnabled = value;
 
+            if (value && OS.GetName() == "macOS")
+            {
+                LogWarning("The debug window is not yet available on MacOS. Read more: https://github.com/vercidium-audio/support/issues/52");
+                _RenderingEnabled = false;
+                return;
+            }
+
             if (world != null)
-                world.RenderingEnabled = value;
+                world.RenderingEnabled = _RenderingEnabled;
         }
     }
 

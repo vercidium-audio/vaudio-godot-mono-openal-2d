@@ -3,13 +3,20 @@ namespace vaudio_godot_mono_openal;
 public partial class VAWorld
 {
     void AddPrimitive(Node node, vaudio.MaterialType material, bool recursive) =>
-        AddPrimitive(node, material, false, recursive);
+        AddPrimitive(node, material, false, PropagateMode.All, recursive);
 
-    void AddPrimitive(Node node, vaudio.MaterialType material, bool useFlatTransmission, bool recursive)
+    void AddPrimitive(Node node, vaudio.MaterialType material, bool useFlatTransmission, PropagateMode filter, bool recursive)
     {
-        // Use this specific material rather than the parent material
-        if (node.HasMeta(MATERIAL_META_KEY))
+        bool hasOwnMaterial = node.HasMeta(MATERIAL_META_KEY);
+
+        if (hasOwnMaterial)
+        {
+            // A node's own material always wins
             material = GetMaterial(node);
+        }
+
+        // Get this node's filter (if any). Defaults to the inherited filter
+        filter = ReadPropagateMode(node, filter);
 
         // Use this specific transmission setting rather than the parent's
         if (node.HasMeta(USE_FLAT_TRANSMISSION_META_KEY))
@@ -18,26 +25,60 @@ public partial class VAWorld
         // Ignore nodes without materials
         if (material != vaudio.MaterialType.Air)
         {
-            if (node is CollisionShape2D collisionShape)
-                CreateVAudioPrimitive(collisionShape, material);
-            else if (node is Polygon2D polygon)
-                CreateVAudioPrimitive(polygon, material, useFlatTransmission);
-            else if (node is Line2D line)
-                CreateVAudioPrimitive(line, material);
+            if (hasOwnMaterial || PassesPropagationFilter(node, filter))
+            {
+                if (node is CollisionShape2D collisionShape)
+                    CreateVAudioPrimitive(collisionShape, material);
+                else if (node is Polygon2D polygon)
+                    CreateVAudioPrimitive(polygon, material, useFlatTransmission);
+                else if (node is Line2D line)
+                    CreateVAudioPrimitive(line, material);
+            }
         }
 
         if (recursive)
             foreach (Node child in node.GetChildren())
-                AddPrimitive(child, material, useFlatTransmission, true);
+                AddPrimitive(child, material, useFlatTransmission, filter, true);
     }
 
-    public void SyncPrimitive(Node node)
+    // Check whether a cascading material should reach this node
+    bool PassesPropagationFilter(Node node, PropagateMode filter)
     {
-        if (world == null)
+        bool isCollider = node is CollisionShape2D;
+
+        switch (filter)
+        {
+            case PropagateMode.Colliders when !isCollider:
+                return false;
+            case PropagateMode.Visuals when isCollider:
+                return false;
+        }
+
+        // In 2D, only colliders are filtered
+        if (isCollider && node.GetParentOrNull<CollisionObject2D>() is { } body)
+            return (body.CollisionLayer & CollisionLayers) != 0;
+
+        return true;
+    }
+
+    // Re-evaluate every node against the current layer masks - used when CollisionLayers changes
+    // at runtime, so nodes that now match get added and nodes that no longer match get removed.
+    void RebuildPrimitives()
+    {
+        // Godot runs [Export] setters during scene deserialization, before _EnterTree. This world is still null then, so bail early
+        if (world == null || !IsInsideTree())
             return;
 
-        RemovePrimitive(node, true);
-        AddPrimitive(node, vaudio.MaterialType.Air, true, true);
+        Node root = GetTree().Root;
+
+        if (root == null)
+            return;
+
+        foreach (var child in root.GetChildren())
+        {
+            RemovePrimitive(child, true);
+            AddPrimitive(child, vaudio.MaterialType.Air, true);
+        }
     }
 
     void RemovePrimitive(Node node, bool recursive)

@@ -8,6 +8,10 @@ public partial class VAWorld
     {
         SetNotifyTransform(true);
 
+        // A VAWorld can only have a position, however it may inherit rotation/scale when being unparented from another node.
+        // Reset rotation/scale here so the editor and debug window always match
+        NormalizeTransform();
+
         if (Engine.IsEditorHint())
             return;
 
@@ -45,8 +49,8 @@ public partial class VAWorld
         world.MaximumConcurrencyLevel = MaximumConcurrencyLevel == 0 ? vaudio.ThreadStatistics.BackgroundThreadCount : MaximumConcurrencyLevel;
         world.WorkItemCount = WorkItemCount;
 
-        world.RenderingEnabled = RenderingEnabled;
-
+        // Re-run the setter now that the world exists. Handles gl_compatibility and Mac restrictions
+        RenderingEnabled = _RenderingEnabled;
 
         world.AirAbsorption.Humidity = Humidity;
         world.AirAbsorption.Temperature = Temperature;
@@ -54,11 +58,6 @@ public partial class VAWorld
 
         // Create reverb effects
         OnDeviceRecreated();
-
-        if (!ALManager.Initialised)
-        {
-            LogError("The godot-mono-openal addon is not enabled. Ensure godot-mono-openal is enabled in Project Settings > Plugins (try toggling it off and on if it's already enabled)");
-        }
 
         // Register for device destroyed/recreated callbacks to clean up and recreate reverb effects
         RegisterDeviceRecreatedCallback(OnDeviceRecreated);
@@ -75,8 +74,7 @@ public partial class VAWorld
         if (what != NotificationTransformChanged)
             return;
 
-        if (Rotation != 0f)
-            Rotation = 0f;
+        NormalizeTransform();
 
         // Redraw the bounds gizmo whenever the node moves, whether from the viewport gizmo,
         // the Inspector's Position field, or code.
@@ -84,6 +82,18 @@ public partial class VAWorld
 
         if (world != null)
             world.Position = ToVAudio(Position);
+    }
+
+    void NormalizeTransform()
+    {
+        if (Rotation != 0f)
+            Rotation = 0f;
+
+        if (Scale != Vector2.One)
+            Scale = Vector2.One;
+
+        if (Skew != 0f)
+            Skew = 0f;
     }
 
     void OnDeviceRecreated()
@@ -173,17 +183,14 @@ public partial class VAWorld
                 NoListenerWarningLogged = true;
             }
         }
-        else if (ALManager.Initialised)
+        else
         {
             // Sync the AL listener to our main listener
             ALManager.ListenerPosition = listener.GlobalPosition;
             ALManager.ListenerRotation = listener.GlobalRotation;
         }
 
-        // ALManager is a static class with no Node._Process of its own - VAWorld drives its tick
-        // the same way it already drives world.Update() for the raytracer.
         ALManager.Update();
-
         world.Update();
     }
 

@@ -97,6 +97,17 @@ public partial class VAWorld
         else
             node.SetMeta(USE_FLAT_TRANSMISSION_META_KEY, useFlatTransmission);
 
+        // Propagation filter (optional - older editor builds send a 4-element payload)
+        if (data.Count > 4)
+        {
+            var propagate = data[4].As<string>();
+
+            if (string.IsNullOrEmpty(propagate))
+                node.RemoveMeta(PROPAGATE_META_KEY);
+            else
+                node.SetMeta(PROPAGATE_META_KEY, propagate);
+        }
+
         SyncPrimitive(node);
 
         return true;
