@@ -29,7 +29,6 @@ public partial class VAWorld
         world.Position = ToVAudio(Position);
         world.Size = ToVAudio(Size);
         world.Epsilon = Epsilon;
-        world.WorldIsIndoors = WorldIsIndoors;
 
         // Reverb
         world.MaximumGroupedEAXCount = MaximumGroupedEAXCount;
