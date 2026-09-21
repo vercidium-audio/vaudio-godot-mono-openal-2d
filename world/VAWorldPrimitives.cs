@@ -121,7 +121,7 @@ public partial class VAWorld
     {
         Debug.Assert(material != vaudio.MaterialType.Air);
 
-        // Skip if it's already been added to the raytracing scene
+        // Skip if it's already been added to the raytracing simulation
         if (collisionShape.HasMeta(PRIMITIVE_META_KEY))
         {
             Debug.Assert(false);
