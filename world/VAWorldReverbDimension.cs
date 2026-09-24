@@ -9,12 +9,10 @@ public partial class VAWorld
         if (eax.RelativeDirections == null || !eax.RelativeDirections.TryGetValue(listener.emitter, out var direction))
             return;
 
-        // RelativeDirections are in vaudio's internal Y-up space, not Godot's Y-down. Godot's clockwise-positive rotation is counter-clockwise in Y-up space, so rotating by +rotation moves the direction into listener space.
-        float c = MathF.Cos(listener.GlobalRotation);
-        float s = MathF.Sin(listener.GlobalRotation);
-
-        float right = (direction.X * c) - (direction.Y * s);
-        float forward = (direction.X * s) + (direction.Y * c);
+        // The SDK returns listener space (X+ right, Y+ forward)
+        var pan = world.CalculateListenerRelativePan(direction, listener.GlobalRotation);
+        float right = pan.X;
+        float forward = pan.Y;
 
         effect.effectSlotGain = eax.RelativeGains[listener.emitter];
         effect.effectSlotGain = Math.Max(0, effect.effectSlotGain);
