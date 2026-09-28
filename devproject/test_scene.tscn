@@ -1,0 +1,127 @@
+[gd_scene format=3]
+
+[ext_resource type="AudioStream" path="res://audio/speech.ogg" id="1_speech"]
+[ext_resource type="Script" path="res://test_controller.gd" id="2_controller"]
+[ext_resource type="Script" path="res://addons/vaudio-godot-mono-openal-2d/world/VAWorld.cs" id="3_world"]
+[ext_resource type="Script" path="res://addons/vaudio-godot-mono-openal-2d/common/nodes/VACustomMaterial.cs" id="4_custommaterial"]
+[ext_resource type="Script" path="res://addons/vaudio-godot-mono-openal-2d/common/nodes/VAListener.cs" id="5_listener"]
+[ext_resource type="Script" path="res://addons/vaudio-godot-mono-openal-2d/common/nodes/VASource.cs" id="6_source"]
+[ext_resource type="Script" path="res://addons/vaudio-godot-mono-openal-2d/nodes/VAVisualisation.cs" id="7_visualisation"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
+size = Vector2(40, 360)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 60.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+radius = 30.0
+height = 160.0
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_1"]
+a = Vector2(-100, 0)
+b = Vector2(100, 0)
+
+[node name="TestScene" type="Node2D"]
+script = ExtResource("2_controller")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="VAWorld" type="Node2D" parent="."]
+position = Vector2(-560, -310)
+script = ExtResource("3_world")
+Size = Vector2(1120, 620)
+MetersPerUnit = 0.1001
+
+[node name="VACustomMaterial" type="Node" parent="VAWorld"]
+script = ExtResource("4_custommaterial")
+MaterialName = "carpet"
+AbsorptionLF = 0.4
+AbsorptionHF = 0.6
+
+[node name="Listener" type="Node2D" parent="."]
+position = Vector2(-400, 0)
+script = ExtResource("5_listener")
+OcclusionRayCount = 1024
+OcclusionBounceCount = 8
+PermeationRayCount = 256
+PermeationBounceCount = 4
+ScatteringSeed = 1765728616
+
+[node name="VASource" type="Node2D" parent="."]
+position = Vector2(372, -1)
+script = ExtResource("6_source")
+ReverbRayCount = 64
+ReverbBounceCount = 64
+ScatteringSeed = 1303946308
+Streams = [ExtResource("1_speech")]
+Looping = true
+Autoplay = true
+
+[node name="VAVisualisation" type="Node2D" parent="VASource"]
+script = ExtResource("7_visualisation")
+
+[node name="BrickWall" type="StaticBody2D" parent="."]
+position = Vector2(200, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BrickWall"]
+position = Vector2(-18, 3)
+scale = Vector2(0.3, 1)
+shape = SubResource("RectangleShape2D_1")
+metadata/vercidium_audio_material = "brick"
+
+[node name="BrickWallRight" type="StaticBody2D" parent="."]
+position = Vector2(200, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BrickWallRight"]
+position = Vector2(351, 0)
+shape = SubResource("RectangleShape2D_1")
+metadata/vercidium_audio_material = "brick"
+
+[node name="MetalCircle" type="StaticBody2D" parent="."]
+position = Vector2(-150, -150)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MetalCircle"]
+shape = SubResource("CircleShape2D_1")
+metadata/vercidium_audio_material = "metal"
+
+[node name="GlassCapsule" type="StaticBody2D" parent="."]
+position = Vector2(-150, 150)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GlassCapsule"]
+shape = SubResource("CapsuleShape2D_1")
+metadata/vercidium_audio_material = "glass"
+
+[node name="ConcreteSegment" type="StaticBody2D" parent="."]
+position = Vector2(0, -250)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ConcreteSegment"]
+shape = SubResource("SegmentShape2D_1")
+metadata/vercidium_audio_material = "concrete"
+
+[node name="WoodPlank" type="Polygon2D" parent="."]
+position = Vector2(400, -180)
+color = Color(0.55, 0.36, 0.2, 1)
+polygon = PackedVector2Array(-150, -10, 150, -10, 150, 10, -150, 10)
+metadata/vercidium_audio_material = "woodindoor"
+
+[node name="CarpetPlank" type="Polygon2D" parent="."]
+position = Vector2(400, 180)
+color = Color(0.6, 0.2, 0.25, 1)
+polygon = PackedVector2Array(-150, -10, 150, -10, 150, 10, -150, 10)
+metadata/vercidium_audio_material = "carpet"
+
+[node name="ConcreteFloor" type="Line2D" parent="."]
+points = PackedVector2Array(-540, 200, -540, 290, 540, 290)
+default_color = Color(0.6, 0.6, 0.6, 1)
+metadata/vercidium_audio_material = "concrete"
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 600.0
+offset_bottom = 60.0
+text = "Move the mouse to move the listener. Hold right mouse to move the source instead.
+Enable Debug > Visible Collision Shapes to see the CollisionShape2D occluders."
