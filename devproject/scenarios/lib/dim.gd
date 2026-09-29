@@ -35,6 +35,10 @@ const REVERB_ROOM_SAME_SIDE_LISTENER := Vector2(-150, 120)
 static func add_reverb_room_long_partition(root: Node, material: String) -> Node:
 	return add_box(root, Vector2(0, 0), Vector2(20, 820), material)
 
+# Random point inside reverb_room.tscn, kept 25 units clear of the walls
+static func random_reverb_room_point(rng: RandomNumberGenerator) -> Vector2:
+	return Vector2(rng.randf_range(-375, 375), rng.randf_range(-225, 225))
+
 static func turn(node: Node, quarter_turns: int) -> void:
 	node.rotation = quarter_turns * PI * 0.5
 
@@ -65,3 +69,10 @@ static func add_reverb_room_body_partition(root: Node, material: String, pieces 
 
 static func colliders(node: Node) -> Array[Node]:
 	return node.find_children("*", "CollisionShape2D", true, false)
+
+# Empty spatial node for moving or reparenting other nodes under
+static func add_pivot(parent: Node, position: Vector2) -> Node:
+	var pivot := Node2D.new()
+	pivot.position = position
+	parent.add_child(pivot)
+	return pivot
