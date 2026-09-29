@@ -1,0 +1,75 @@
+[gd_scene format=3]
+
+[ext_resource type="AudioStream" path="res://audio/speech.ogg" id="1_speech"]
+[ext_resource type="Script" path="res://test_controller.gd" id="2_controller"]
+[ext_resource type="Script" path="res://addons/vaudio-godot-mono-openal-2d/world/VAWorld.cs" id="3_world"]
+[ext_resource type="Script" path="res://addons/vaudio-godot-mono-openal-2d/common/nodes/VACustomMaterial.cs" id="4_custommaterial"]
+[ext_resource type="Script" path="res://addons/vaudio-godot-mono-openal-2d/common/nodes/VAListener.cs" id="5_listener"]
+[ext_resource type="Script" path="res://addons/vaudio-godot-mono-openal-2d/common/nodes/VASource.cs" id="6_source"]
+
+[node name="ReverbRoom" type="Node2D"]
+script = ExtResource("2_controller")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="VAWorld" type="Node2D" parent="."]
+script = ExtResource("3_world")
+position = Vector2(-500, -320)
+Size = Vector2(1000, 640)
+MetersPerUnit = 0.02
+
+[node name="RoomMaterial" type="Node" parent="VAWorld"]
+script = ExtResource("4_custommaterial")
+MaterialName = "room"
+AbsorptionLF = 0.1
+AbsorptionHF = 0.15
+Scattering = 0.3
+
+[node name="Listener" type="Node2D" parent="."]
+script = ExtResource("5_listener")
+OcclusionRayCount = 1024
+OcclusionBounceCount = 8
+PermeationRayCount = 256
+PermeationBounceCount = 4
+ScatteringSeed = 1765728616
+position = Vector2(-150, 0)
+
+[node name="VASource" type="Node2D" parent="."]
+script = ExtResource("6_source")
+ReverbRayCount = 64
+ReverbBounceCount = 64
+ScatteringSeed = 1303946308
+Streams = [ExtResource("1_speech")]
+Looping = true
+Autoplay = true
+position = Vector2(150, 60)
+
+[node name="WallTop" type="Polygon2D" parent="."]
+color = Color(0.7, 0.7, 0.65, 1)
+polygon = PackedVector2Array(-420, -270, 420, -270, 420, -250, -420, -250)
+metadata/vercidium_audio_material = "room"
+
+[node name="WallBottom" type="Polygon2D" parent="."]
+color = Color(0.7, 0.7, 0.65, 1)
+polygon = PackedVector2Array(-420, 250, 420, 250, 420, 270, -420, 270)
+metadata/vercidium_audio_material = "room"
+
+[node name="WallLeft" type="Polygon2D" parent="."]
+color = Color(0.7, 0.7, 0.65, 1)
+polygon = PackedVector2Array(-420, -250, -400, -250, -400, 250, -420, 250)
+metadata/vercidium_audio_material = "room"
+
+[node name="WallRight" type="Polygon2D" parent="."]
+color = Color(0.7, 0.7, 0.65, 1)
+polygon = PackedVector2Array(400, -250, 420, -250, 420, 250, 400, 250)
+metadata/vercidium_audio_material = "room"
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 600.0
+offset_bottom = 60.0
+text = "Closed 16 x 10 m room, every wall uses the \"room\" VACustomMaterial.
+Move the mouse to move the listener. Hold right mouse to move the source instead."
