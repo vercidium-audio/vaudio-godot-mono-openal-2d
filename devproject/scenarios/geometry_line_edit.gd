@@ -1,8 +1,6 @@
 extends "res://scenarios/lib/scenario.gd"
 
-# Edits a sealed Line2D partition's points, applied with VAWorld.sync_primitive. A Line2D is a zero-thickness open polyline using flat transmission. Every built-in material only loses 10% LF / 25% HF per touch, which leaves more energy than the permeation cap, so brick is made fully opaque here to be able to see the line block anything
-#
-# Currently fails in both 2D plugins: the line doesn't muffle at all (HF 0.998, same as an empty room), and neither does the SDK's own LinePrimitive via a SegmentShape2D, so the cause is in the 2D SDK rather than the plugins
+# Edits a sealed Line2D partition's points, applied with VAWorld.sync_primitive. A Line2D is a zero-thickness open polyline using flat transmission. Every built-in material only loses 10% LF / 25% HF per touch, which leaves more energy than the permeation cap, so brick is made fully opaque here to be able to see the line block anything. That silences LF too, and the plugins report HF relative to LF (clamped at LF 0.01), so the sealed checks use LF
 
 const BRICK := 1
 
@@ -36,9 +34,9 @@ func run() -> void:
 	edit(SEALED)
 	var resealed := await measure_muffling("line resealed", "line lengthened to seal the room again - expect muffled speech")
 
-	check(sealed.y < 0.1, "muffling HF %.4f with the sealing line, expected heavily muffled" % sealed.y)
+	check(sealed.x < 0.1, "muffling LF %.4f with the sealing line, expected heavily muffled" % sealed.x)
 	check(short.y > 0.9, "muffling HF %.4f after shortening the line, expected almost unmuffled" % short.y)
-	check(absf(resealed.y - sealed.y) < 0.02, "muffling HF %.4f after resealing the line didn't return to %.4f" % [resealed.y, sealed.y])
+	check(absf(resealed.x - sealed.x) < 0.02, "muffling LF %.4f after resealing the line didn't return to %.4f" % [resealed.x, sealed.x])
 
 func edit(points: Array) -> void:
 	partition.points = PackedVector2Array(points)
