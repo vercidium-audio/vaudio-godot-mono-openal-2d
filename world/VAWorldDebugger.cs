@@ -38,11 +38,22 @@ public partial class VAWorld
 
         var centre = view * (viewport.GetVisibleRect().Size / 2f);
         var rotation = view.Rotation;
-        var zoom = canvas.Scale.X;
+        // Canvas scale is in physical pixels, but the debug window's zoom is in logical pixels (framebuffer / GLFW content scale)
+        var zoom = canvas.Scale.X / GetScreenContentScale();
 
         var debuggerRelay = Engine.GetSingleton(DEBUGGER_PLUGIN_SINGLETON_NAME);
 
         debuggerRelay.Call("sync_viewport_camera", centre, rotation, zoom);
+    }
+
+    // Matches GLFW's glfwGetWindowContentScale. Windows' ScreenGetScale always returns 1, so derive it from the effective monitor DPI instead
+    static float GetScreenContentScale()
+    {
+        float scale = OS.GetName() == "Windows"
+            ? DisplayServer.ScreenGetDpi() / 96f
+            : DisplayServer.ScreenGetScale();
+
+        return scale > 0 ? scale : 1;
     }
 
     // EngineDebugger strips the "vaudio:" prefix before calling this, so message here is just

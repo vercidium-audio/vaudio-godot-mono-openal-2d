@@ -226,6 +226,8 @@ public partial class VAWorld
                     scale = ToVAudio(scale),
                     enclosed = false,
                     material = material,
+                    // An open polyline has zero thickness, so distance-based transmission through it is always zero - same reason LinePrimitive always uses flat transmission
+                    UseFlatTransmission = true,
                 });
         }
 
@@ -372,9 +374,10 @@ public partial class VAWorld
             position = position,
             rotation = rotation,
             scale = ToVAudio(scale),
-            // A Line2D is an open polyline, never a closed loop
+            // A Line2D is an open polyline, never a closed loop. It has zero thickness, so it needs flat transmission to block anything
             enclosed = false,
             material = material,
+            UseFlatTransmission = true,
         };
 
         world.AddPrimitive(prim);
