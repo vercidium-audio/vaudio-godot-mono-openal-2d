@@ -88,7 +88,13 @@ public partial class VAWorld
         {
             var wrapper = node.GetMeta(PRIMITIVE_META_KEY).As<VAPrimitiveRef>();
 
-            wrapper.Watcher?.QueueFree();
+            // QueueFree() only deletes the watcher at the end of the frame, and the node may still move before then (e.g. RebuildPrimitives), so stop it updating the primitive removed below
+            if (wrapper.Watcher != null)
+            {
+                wrapper.Watcher.OnTransformChanged = null;
+                wrapper.Watcher.QueueFree();
+                wrapper.Watcher = null;
+            }
 
             if (wrapper.ShapeCallable is Callable shapeCallable && node is CollisionShape2D cs && cs.Shape != null)
                 if (cs.Shape.IsConnected(Resource.SignalName.Changed, shapeCallable))
