@@ -160,12 +160,11 @@ public partial class VAWorld
         }
         else if (shape is CapsuleShape2D capsule)
         {
-            // TODO - make a capsule primitive in 2D
-            world.AddPrimitive(prim = new vaudio.OvalPrimitive()
+            world.AddPrimitive(prim = new vaudio.CapsulePrimitive()
             {
                 center = position,
-                radiusX = capsule.Radius * scale.X,
-                radiusY = (capsule.Height / 2f) * scale.Y,
+                radius = capsule.Radius * scale.X,
+                length = CapsuleBodyLength(capsule, scale),
                 rotation = rotation,
                 material = material,
             });
@@ -217,6 +216,8 @@ public partial class VAWorld
                     scale = ToVAudio(scale),
                     enclosed = true,
                     material = material,
+                    // PolygonPrimitive defaults to flat transmission, but a convex polygon is a closed solid with real thickness
+                    UseFlatTransmission = false,
                 });
         }
         else if (shape is ConcavePolygonShape2D concavePolygon)
@@ -242,15 +243,25 @@ public partial class VAWorld
             void update() => UpdateCollisionShapePrimitive(collisionShape, prim);
             var wrapper = AttachWatcher(collisionShape, prim, update);
 
-            if (collisionShape.Shape is RectangleShape2D)
-            {
-                var callable = Callable.From(update);
-                collisionShape.Shape.Connect(Resource.SignalName.Changed, callable);
-                wrapper.ShapeCallable = callable;
-            }
+            // Editing the shape resource (size, radius, points etc) doesn't move the node, so the watcher won't see it
+            Action onShapeChanged = shape is ConvexPolygonShape2D or ConcavePolygonShape2D ? () => RebuildCollisionShapePrimitive(collisionShape) : update;
+            var callable = Callable.From(onShapeChanged);
+            shape.Connect(Resource.SignalName.Changed, callable);
+            wrapper.ShapeCallable = callable;
 
             collisionShape.SetMeta(PRIMITIVE_META_KEY, wrapper);
         }
+    }
+
+    // Polygon points are baked into the primitive when it's created, so recreate it from scratch
+    void RebuildCollisionShapePrimitive(CollisionShape2D collisionShape)
+    {
+        if (!collisionShape.HasMeta(PRIMITIVE_META_KEY))
+            return;
+
+        var material = collisionShape.GetMeta(PRIMITIVE_META_KEY).As<VAPrimitiveRef>().Primitive.material;
+        RemovePrimitive(collisionShape, false);
+        CreateVAudioPrimitive(collisionShape, material);
     }
 
     static void UpdateCollisionShapePrimitive(CollisionShape2D collisionShape, vaudio.Primitive primitive)
@@ -270,13 +281,13 @@ public partial class VAWorld
             circlePrim.center = position;
             circlePrim.radius = circle.Radius * scale.X;
         }
-        else if (primitive is vaudio.OvalPrimitive ovalPrim)
+        else if (primitive is vaudio.CapsulePrimitive capsulePrim)
         {
             var capsule = collisionShape.Shape as CapsuleShape2D;
-            ovalPrim.center = position;
-            ovalPrim.radiusX = capsule.Radius * scale.X;
-            ovalPrim.radiusY = (capsule.Height / 2f) * scale.Y;
-            ovalPrim.rotation = rotation;
+            capsulePrim.center = position;
+            capsulePrim.radius = capsule.Radius * scale.X;
+            capsulePrim.length = CapsuleBodyLength(capsule, scale);
+            capsulePrim.rotation = rotation;
         }
         else if (primitive is vaudio.LinePrimitive linePrim)
         {
@@ -311,6 +322,10 @@ public partial class VAWorld
             polygonPrim.scale = ToVAudio(scale);
         }
     }
+
+    // Godot's capsule height includes both caps, whereas vaudio's length is just the straight body between them
+    static float CapsuleBodyLength(CapsuleShape2D capsule, Vector2 scale) =>
+        MathF.Max(capsule.Height * scale.Y - 2f * capsule.Radius * scale.X, 0f);
 
     void CreateVAudioPrimitive(Polygon2D polygon, vaudio.MaterialType material, bool useFlatTransmission)
     {
