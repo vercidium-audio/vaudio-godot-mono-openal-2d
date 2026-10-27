@@ -35,6 +35,13 @@ const REVERB_ROOM_SAME_SIDE_LISTENER := Vector2(-150, 120)
 static func add_reverb_room_long_partition(root: Node, material: String) -> Node:
 	return add_box(root, Vector2(0, 0), Vector2(20, 820), material)
 
+# Tight group of sources in reverb_room.tscn on the source's side of the partition, CLUSTER_SPACING apart, all well within CLUSTER_DISTANCE of each other
+const CLUSTER_SPACING := 20.0
+const CLUSTER_DISTANCE := 100.0
+
+static func reverb_room_cluster_point(index: int) -> Vector2:
+	return Vector2(100 + CLUSTER_SPACING * index, -60)
+
 # Random point inside reverb_room.tscn, kept 25 units clear of the walls
 static func random_reverb_room_point(rng: RandomNumberGenerator) -> Vector2:
 	return Vector2(rng.randf_range(-375, 375), rng.randf_range(-225, 225))
