@@ -35,6 +35,13 @@ const REVERB_ROOM_SAME_SIDE_LISTENER := Vector2(-150, 120)
 static func add_reverb_room_long_partition(root: Node, material: String) -> Node:
 	return add_box(root, Vector2(0, 0), Vector2(20, 820), material)
 
+# Tight group of sources in reverb_room.tscn on the source's side of the partition, CLUSTER_SPACING apart, all well within CLUSTER_DISTANCE of each other
+const CLUSTER_SPACING := 20.0
+const CLUSTER_DISTANCE := 100.0
+
+static func reverb_room_cluster_point(index: int) -> Vector2:
+	return Vector2(100 + CLUSTER_SPACING * index, -60)
+
 # Random point inside reverb_room.tscn, kept 25 units clear of the walls
 static func random_reverb_room_point(rng: RandomNumberGenerator) -> Vector2:
 	return Vector2(rng.randf_range(-375, 375), rng.randf_range(-225, 225))
@@ -76,3 +83,39 @@ static func add_pivot(parent: Node, position: Vector2) -> Node:
 	pivot.position = position
 	parent.add_child(pivot)
 	return pivot
+
+# Wall-to-wall divider made of a single StaticBody2D holding the given shape, with the material on the body
+static func add_reverb_room_shape_partition(root: Node, shape: Shape2D, material: String) -> Node:
+	var collider := CollisionShape2D.new()
+	collider.shape = shape
+	var body := StaticBody2D.new()
+	body.set_meta(MATERIAL_META, material)
+	body.add_child(collider)
+	root.add_child(body)
+	return body
+
+static func column_points(half_height: float) -> PackedVector2Array:
+	return PackedVector2Array([Vector2(-10, -half_height), Vector2(10, -half_height), Vector2(10, half_height), Vector2(-10, half_height)])
+
+# Shapes that seal reverb_room.tscn for add_reverb_room_shape_partition, each with edits to the shape resource itself that narrow it to a 50 unit column sound goes around, and seal it again
+static func sealing_shape_edits() -> Array:
+	var rectangle := RectangleShape2D.new()
+	rectangle.size = Vector2(20, 520)
+
+	# Taller than the room so the rounded caps don't leave gaps at the walls
+	var capsule := CapsuleShape2D.new()
+	capsule.radius = 10
+	capsule.height = 560
+
+	var convex := ConvexPolygonShape2D.new()
+	convex.points = column_points(260)
+
+	var concave := ConcavePolygonShape2D.new()
+	concave.segments = PackedVector2Array([Vector2(0, -260), Vector2(0, 0), Vector2(0, 0), Vector2(0, 260)])
+
+	return [
+		{"name": "rectangle", "shape": rectangle, "narrow": func(): rectangle.size = Vector2(20, 50), "seal": func(): rectangle.size = Vector2(20, 520)},
+		{"name": "capsule", "shape": capsule, "narrow": func(): capsule.height = 50, "seal": func(): capsule.height = 560},
+		{"name": "convex polygon", "shape": convex, "narrow": func(): convex.points = column_points(25), "seal": func(): convex.points = column_points(260)},
+		{"name": "concave polygon", "shape": concave, "narrow": func(): concave.segments = PackedVector2Array([Vector2(0, -25), Vector2(0, 0), Vector2(0, 0), Vector2(0, 25)]), "seal": func(): concave.segments = PackedVector2Array([Vector2(0, -260), Vector2(0, 0), Vector2(0, 0), Vector2(0, 260)])},
+	]

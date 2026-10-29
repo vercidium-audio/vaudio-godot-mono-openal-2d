@@ -3,7 +3,7 @@ namespace vaudio_godot_mono_openal;
 /// <summary>
 /// Renders an emitter's <see cref="vaudio.Emitter.VisualisationCallback"/> ray-bounce results as
 /// fading diamond sprites in the 2D canvas. Add it as a direct child of a <see cref="VAEmitter"/>,
-/// or of a <see cref="VARaytracedSource"/> such as <see cref="VASource"/>.
+/// or of a <see cref="VARaytracedSource"/> such as <see cref="VASource"/>. On a <see cref="VAListener"/>, it only renders while that listener is current.
 ///
 /// Adding this node while the game is already running only runs its script in the editor's own
 /// tool-script preview context - Godot Mono does not instantiate a new C# node inside the live
@@ -54,6 +54,9 @@ public partial class VAVisualisation : Node2D
 
     bool waitingForParent = false;
 
+    // True while this node receives its emitter's visualisation data
+    bool callbackRegistered = false;
+
     public override void _EnterTree()
     {
         if (Engine.IsEditorHint())
@@ -76,8 +79,10 @@ public partial class VAVisualisation : Node2D
             waitingForParent = false;
         }
 
-        if (emitter?.emitter != null)
-            emitter.emitter.VisualisationCallback = null;
+        TeardownVisualisation();
+
+        if (emitter?.visualisation == this)
+            emitter.visualisation = null;
 
         emitter = null;
     }
@@ -113,17 +118,48 @@ public partial class VAVisualisation : Node2D
             _ => null,
         };
 
-        if (candidate?.emitter == null)
-        {
-            emitter = null;
-            return;
-        }
-
         emitter = candidate;
 
-        ApplyPropertiesToEmitter();
+        if (emitter == null)
+            return;
 
+        // The emitter starts this visualisation itself if it has no vaudio emitter yet
+        emitter.visualisation = this;
+        InitializeVisualisation();
+    }
+
+    // Called on entering the tree, or by the emitter once it has a vaudio emitter: when it finds a VAWorld that entered the tree later, or when a listener becomes current. No-op once initialised
+    internal void InitializeVisualisation()
+    {
+        // Every listener shares one vaudio emitter, which only the current listener holds. The listener calls this again when it becomes current
+        if (callbackRegistered || emitter?.emitter == null)
+            return;
+
+        ApplyPropertiesToEmitter();
         emitter.emitter.VisualisationCallback = OnVisualisationData;
+        callbackRegistered = true;
+    }
+
+    // Called on exiting the tree, or by the emitter before it lets go of its vaudio emitter: when it leaves the VAWorld, or when a listener stops being current. InitializeVisualisation can be called again afterwards
+    internal void TeardownVisualisation()
+    {
+        if (!callbackRegistered)
+            return;
+
+        // The vaudio emitter is already gone if the node released it first. It keeps casting visualisation rays until its ray count is cleared, even with no callback
+        if (emitter?.emitter != null)
+        {
+            emitter.emitter.VisualisationCallback = null;
+            emitter.emitter.VisualisationRayCount = 0;
+        }
+
+        callbackRegistered = false;
+
+        if (multimesh != null)
+        {
+            multimesh.VisibleInstanceCount = 0;
+            nextInstance = 0;
+        }
     }
 
     void RetryFindEmitter(Node node)

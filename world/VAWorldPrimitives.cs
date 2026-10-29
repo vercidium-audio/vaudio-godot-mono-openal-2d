@@ -101,6 +101,8 @@ public partial class VAWorld
                     cs.Shape.Disconnect(Resource.SignalName.Changed, shapeCallable);
 
             world.RemovePrimitive(wrapper.Primitive);
+            ReleaseSharedPolygon(wrapper.SharedGeometry as SharedPolygon);
+            wrapper.SharedGeometry = null;
             node.RemoveMeta(PRIMITIVE_META_KEY);
         }
 
@@ -138,6 +140,7 @@ public partial class VAWorld
         Decompose(collisionShape.GlobalTransform, out var position, out var rotation, out var scale);
 
         vaudio.Primitive prim = null;
+        SharedPolygon sharedPolygon = null;
 
         if (shape is RectangleShape2D rect)
         {
@@ -160,12 +163,11 @@ public partial class VAWorld
         }
         else if (shape is CapsuleShape2D capsule)
         {
-            // TODO - make a capsule primitive in 2D
-            world.AddPrimitive(prim = new vaudio.OvalPrimitive()
+            world.AddPrimitive(prim = new vaudio.CapsulePrimitive()
             {
                 center = position,
-                radiusX = capsule.Radius * scale.X,
-                radiusY = (capsule.Height / 2f) * scale.Y,
+                radius = capsule.Radius * scale.X,
+                length = CapsuleBodyLength(capsule, scale),
                 rotation = rotation,
                 material = material,
             });
@@ -206,27 +208,27 @@ public partial class VAWorld
         }
         else if (shape is ConvexPolygonShape2D convexPolygon)
         {
-            var points = Conversions.ConvertPointsToVectorList(convexPolygon.Points);
+            var polygon = AcquireSharedPolygon(convexPolygon, () => convexPolygon.Points, out sharedPolygon);
 
-            if (points.Count >= 3)
-                world.AddPrimitive(prim = new vaudio.PolygonPrimitive()
+            if (polygon != null)
+                world.AddPrimitive(prim = new vaudio.PolygonPrimitive(polygon)
                 {
-                    points = points,
                     position = position,
                     rotation = rotation,
                     scale = ToVAudio(scale),
                     enclosed = true,
                     material = material,
+                    // PolygonPrimitive defaults to flat transmission, but a convex polygon is a closed solid with real thickness
+                    UseFlatTransmission = false,
                 });
         }
         else if (shape is ConcavePolygonShape2D concavePolygon)
         {
-            var points = Conversions.ConvertPointsToVectorList(concavePolygon.Segments);
+            var polygon = AcquireSharedPolygon(concavePolygon, () => concavePolygon.Segments, out sharedPolygon);
 
-            if (points.Count >= 3)
-                world.AddPrimitive(prim = new vaudio.PolygonPrimitive()
+            if (polygon != null)
+                world.AddPrimitive(prim = new vaudio.PolygonPrimitive(polygon)
                 {
-                    points = points,
                     position = position,
                     rotation = rotation,
                     scale = ToVAudio(scale),
@@ -241,16 +243,29 @@ public partial class VAWorld
         {
             void update() => UpdateCollisionShapePrimitive(collisionShape, prim);
             var wrapper = AttachWatcher(collisionShape, prim, update);
+            wrapper.SharedGeometry = sharedPolygon;
 
-            if (collisionShape.Shape is RectangleShape2D)
-            {
-                var callable = Callable.From(update);
-                collisionShape.Shape.Connect(Resource.SignalName.Changed, callable);
-                wrapper.ShapeCallable = callable;
-            }
+            // Editing the shape resource (size, radius, points etc) doesn't move the node, so the watcher won't see it
+            Action onShapeChanged = shape is ConvexPolygonShape2D or ConcavePolygonShape2D ? () => RebuildCollisionShapePrimitive(collisionShape) : update;
+            var callable = Callable.From(onShapeChanged);
+            shape.Connect(Resource.SignalName.Changed, callable);
+            wrapper.ShapeCallable = callable;
 
             collisionShape.SetMeta(PRIMITIVE_META_KEY, wrapper);
         }
+    }
+
+    // Polygon points are baked into the shared polygon when it's created, so recreate it from scratch. Every node using this shape gets the Changed signal, the first one invalidates the stale shared polygon and the rest pick up its replacement
+    void RebuildCollisionShapePrimitive(CollisionShape2D collisionShape)
+    {
+        if (!collisionShape.HasMeta(PRIMITIVE_META_KEY))
+            return;
+
+        var wrapper = collisionShape.GetMeta(PRIMITIVE_META_KEY).As<VAPrimitiveRef>();
+        var material = wrapper.Primitive.material;
+        InvalidateSharedPolygon(wrapper.SharedGeometry as SharedPolygon);
+        RemovePrimitive(collisionShape, false);
+        CreateVAudioPrimitive(collisionShape, material);
     }
 
     static void UpdateCollisionShapePrimitive(CollisionShape2D collisionShape, vaudio.Primitive primitive)
@@ -270,13 +285,13 @@ public partial class VAWorld
             circlePrim.center = position;
             circlePrim.radius = circle.Radius * scale.X;
         }
-        else if (primitive is vaudio.OvalPrimitive ovalPrim)
+        else if (primitive is vaudio.CapsulePrimitive capsulePrim)
         {
             var capsule = collisionShape.Shape as CapsuleShape2D;
-            ovalPrim.center = position;
-            ovalPrim.radiusX = capsule.Radius * scale.X;
-            ovalPrim.radiusY = (capsule.Height / 2f) * scale.Y;
-            ovalPrim.rotation = rotation;
+            capsulePrim.center = position;
+            capsulePrim.radius = capsule.Radius * scale.X;
+            capsulePrim.length = CapsuleBodyLength(capsule, scale);
+            capsulePrim.rotation = rotation;
         }
         else if (primitive is vaudio.LinePrimitive linePrim)
         {
@@ -312,6 +327,10 @@ public partial class VAWorld
         }
     }
 
+    // Godot's capsule height includes both caps, whereas vaudio's length is just the straight body between them
+    static float CapsuleBodyLength(CapsuleShape2D capsule, Vector2 scale) =>
+        MathF.Max(capsule.Height * scale.Y - 2f * capsule.Radius * scale.X, 0f);
+
     void CreateVAudioPrimitive(Polygon2D polygon, vaudio.MaterialType material, bool useFlatTransmission)
     {
         Debug.Assert(material != vaudio.MaterialType.Air);
@@ -332,9 +351,8 @@ public partial class VAWorld
 
         Decompose(polygon.GlobalTransform, out var position, out var rotation, out var scale);
 
-        vaudio.PolygonPrimitive prim = new()
+        vaudio.PolygonPrimitive prim = new(new vaudio.Polygon(points))
         {
-            points = points,
             position = position,
             rotation = rotation,
             scale = ToVAudio(scale),
@@ -374,9 +392,8 @@ public partial class VAWorld
 
         Decompose(line.GlobalTransform, out var position, out var rotation, out var scale);
 
-        vaudio.PolygonPrimitive prim = new()
+        vaudio.PolygonPrimitive prim = new(new vaudio.Polygon(points))
         {
-            points = points,
             position = position,
             rotation = rotation,
             scale = ToVAudio(scale),
@@ -421,5 +438,54 @@ public partial class VAWorld
         }
 
         return false;
+    }
+
+    // A vaudio Polygon built once per Godot Shape2D resource and shared by every PolygonPrimitive created from it
+    sealed class SharedPolygon
+    {
+        public vaudio.Polygon Polygon;
+        public Resource Resource;
+        public int ReferenceCount;
+    }
+
+    // Keyed by the resource's instance id
+    readonly Dictionary<ulong, SharedPolygon> sharedPolygons = [];
+
+    // readPoints is only called if the resource doesn't have a shared polygon yet. Returns null if it has fewer than 3 points
+    vaudio.Polygon AcquireSharedPolygon(Resource resource, Func<Vector2[]> readPoints, out SharedPolygon sharedPolygon)
+    {
+        if (!sharedPolygons.TryGetValue(resource.GetInstanceId(), out sharedPolygon))
+        {
+            var points = Conversions.ConvertPointsToVectorList(readPoints());
+
+            if (points.Count < 3)
+                return null;
+
+            sharedPolygon = new SharedPolygon { Polygon = new vaudio.Polygon(points), Resource = resource };
+            sharedPolygons[resource.GetInstanceId()] = sharedPolygon;
+        }
+
+        sharedPolygon.ReferenceCount++;
+        return sharedPolygon.Polygon;
+    }
+
+    void ReleaseSharedPolygon(SharedPolygon sharedPolygon)
+    {
+        // The SDK has no explicit destroy for a Polygon, it's collected once nothing references it
+        if (sharedPolygon != null && --sharedPolygon.ReferenceCount == 0)
+            InvalidateSharedPolygon(sharedPolygon);
+    }
+
+    // Stops new primitives reusing this shared polygon, e.g. after its Shape2D changed. Existing primitives keep it until they're removed
+    void InvalidateSharedPolygon(SharedPolygon sharedPolygon)
+    {
+        if (sharedPolygon == null)
+            return;
+
+        // Only remove it if it's still the current entry, since an earlier invalidation may have already replaced it
+        var id = sharedPolygon.Resource.GetInstanceId();
+
+        if (sharedPolygons.TryGetValue(id, out var current) && current == sharedPolygon)
+            sharedPolygons.Remove(id);
     }
 }
