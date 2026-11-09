@@ -79,14 +79,6 @@ The `output_device` setting should show a real device name once you've enabled t
 
 Other settings like master volume, distance model, meters per unit are set on the `VAWorld` node.
 
-## World bounds
-
-Only the box starting at the `VAWorld`'s `GetBoundsPosition()` with size `Size` is raytraced. `EmittersOutsideTheWorldAreMuffled` on the `VAWorld` decides what happens to sources outside it:
-- On (default): the bounds are final. A source that doesn't loop isn't started outside them: `Play()` returns false with a warning, autoplay is skipped, and neither retries once it's inside. A source that leaves the bounds, or that the bounds move away from, is stopped mid-sound. Looping sources and open streams wait outside and play again once they're back inside (a stream drops the audio queued before it left), and `Stop()` cancels that wait.
-- Off: sources outside play clearly with no reverb, and get their reverb back once they're inside.
-
-An emitter or source with `ClampPosition` on (the default for `VAEmitter`, but not for sources) is raytraced from the nearest point inside the bounds, so it's never outside, and neither are `VASourceLeech`es of it. To check this at runtime, use `IsWithinBounds(position)` on the `VAWorld`, `IsOutsideBounds()` on a `VAEmitter`, `IsSilencedByBounds()` on an emitter, source or leech, and `HasReverb()` on any source.
-
 ## Visual Studio
 
 To run your Godot project from Visual Studio, click the small dropdown arrow next to `your_game` and click `your_game Debug Properties`.
