@@ -11,6 +11,7 @@ public partial class VAWorld
         // A VAWorld can only have a position, however it may inherit rotation/scale when being unparented from another node.
         // Reset rotation/scale here so the editor and debug window always match
         NormalizeTransform();
+        ReclampBoundsSize();
 
         if (Engine.IsEditorHint())
             return;
@@ -27,7 +28,8 @@ public partial class VAWorld
 
         world.Name = ResolvedWorldName;
         world.LogCallback = LogSDK;
-        world.Position = ToVAudio(Position);
+        boundsPosition = Position;
+        PlaceBounds();
         world.Size = ToVAudio(Size);
         world.Epsilon = Epsilon;
 
@@ -78,12 +80,15 @@ public partial class VAWorld
 
         NormalizeTransform();
 
+        // Godot 2D only sends the next transform notification once something has read the global transform
+        GetGlobalTransform();
+
         // Redraw the bounds gizmo whenever the node moves, whether from the viewport gizmo,
         // the Inspector's Position field, or code.
         QueueRedraw();
 
-        if (world != null)
-            world.Position = ToVAudio(Position);
+        if (world != null && _BoundsFollow != VABoundsFollow.Listener)
+            PlaceBounds();
     }
 
     void NormalizeTransform()
@@ -195,6 +200,8 @@ public partial class VAWorld
             ALManager.ListenerPosition = listener.GlobalPosition;
             ALManager.ListenerRotation = listener.GlobalRotation;
         }
+
+        FollowBounds();
 
         ALManager.Update();
         world.Update();

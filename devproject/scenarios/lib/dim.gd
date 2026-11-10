@@ -119,3 +119,10 @@ static func sealing_shape_edits() -> Array:
 		{"name": "convex polygon", "shape": convex, "narrow": func(): convex.points = column_points(25), "seal": func(): convex.points = column_points(260)},
 		{"name": "concave polygon", "shape": concave, "narrow": func(): concave.segments = PackedVector2Array([Vector2(0, -25), Vector2(0, 0), Vector2(0, 0), Vector2(0, 25)]), "seal": func(): concave.segments = PackedVector2Array([Vector2(0, -260), Vector2(0, 0), Vector2(0, 0), Vector2(0, 260)])},
 	]
+
+# How far the listener must move before world_bounds_follow_listener.gd's bounds follow it - 1 m at reverb_room.tscn's meters_per_unit of 0.02
+const BOUNDS_UPDATE_DISTANCE := 50.0
+
+# Vector along the horizontal and vertical axes, the two axes 2D and 3D share
+static func planar(x: float, y: float) -> Vector2:
+	return Vector2(x, y)
