@@ -5,7 +5,7 @@ public partial class VAWorld
     void AddPrimitive(Node node, vaudio.MaterialType material, bool recursive) =>
         AddPrimitive(node, material, false, PropagateMode.All, recursive);
 
-    void AddPrimitive(Node node, vaudio.MaterialType material, bool useFlatTransmission, PropagateMode filter, bool recursive)
+    void AddPrimitive(Node node, vaudio.MaterialType material, bool useFlatTransmission, PropagateMode propagateMode, bool recursive)
     {
         bool hasOwnMaterial = node.HasMeta(MATERIAL_META_KEY);
 
@@ -15,8 +15,8 @@ public partial class VAWorld
             material = GetMaterial(node);
         }
 
-        // Get this node's filter (if any). Defaults to the inherited filter
-        filter = ReadPropagateMode(node, filter);
+        // Get this node's propagateMode (if any). Defaults to the inherited propagateMode
+        propagateMode = ReadPropagateMode(node, propagateMode);
 
         // Use this specific transmission setting rather than the parent's
         if (node.HasMeta(USE_FLAT_TRANSMISSION_META_KEY))
@@ -25,7 +25,7 @@ public partial class VAWorld
         // Ignore nodes without materials
         if (material != vaudio.MaterialType.Air)
         {
-            if (hasOwnMaterial || PassesPropagationFilter(node, filter))
+            if (hasOwnMaterial || PassesPropagationFilter(node, propagateMode))
             {
                 if (node is CollisionShape2D collisionShape)
                     CreateVAudioPrimitive(collisionShape, material);
@@ -42,11 +42,11 @@ public partial class VAWorld
     }
 
     // Check whether a cascading material should reach this node
-    bool PassesPropagationFilter(Node node, PropagateMode filter)
+    bool PassesPropagationFilter(Node node, PropagateMode propagateMode)
     {
         bool isCollider = node is CollisionShape2D;
 
-        switch (filter)
+        switch (propagateMode)
         {
             case PropagateMode.Colliders when !isCollider:
                 return false;
