@@ -38,7 +38,7 @@ public partial class VAWorld
 
         if (recursive)
             foreach (Node child in node.GetChildren())
-                AddPrimitive(child, material, useFlatTransmission, filter, true);
+                AddPrimitive(child, material, useFlatTransmission, propagateMode, true);
     }
 
     // Check whether a cascading material should reach this node

@@ -8,9 +8,12 @@ public partial class VAWorld
     // Ancestors may have changed, so walk up to the top-level scene node and resync the whole subtree from there.
     public void SyncPrimitive(Node node)
     {
-        // TODO - why could world be null? Worth logging a warning here?
+        // world is only created in _EnterTree at runtime, so it's null in the editor or before this VAWorld enters the tree
         if (world == null)
+        {
+            LogWarning($"{Name}: SyncPrimitive({node.Name}) was called before the world was created, ignoring");
             return;
+        }
 
         Node syncRoot = TopLevelSceneNode(node) ?? node;
 
@@ -25,7 +28,7 @@ public partial class VAWorld
         useFlatTransmission = false;
         propagateMode = PropagateMode.All;
 
-        // TODO - what is this catching? Worth logging a warning if it fails?
+        // Recursion base case: the tree root Window has no parent, so there's nothing left to inherit from
         if (node.GetParent() is not { } parent)
             return;
 
