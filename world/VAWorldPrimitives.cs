@@ -1,9 +1,10 @@
+// Human-reviewed
+
 namespace vaudio_godot_mono_openal;
 
 public partial class VAWorld
 {
-    void AddPrimitive(Node node, vaudio.MaterialType material, bool recursive) =>
-        AddPrimitive(node, material, false, PropagateMode.All, recursive);
+    void AddPrimitive(Node node, vaudio.MaterialType material, bool recursive) => AddPrimitive(node, material, false, PropagateMode.All, recursive);
 
     void AddPrimitive(Node node, vaudio.MaterialType material, bool useFlatTransmission, PropagateMode propagateMode, bool recursive)
     {
