@@ -23,8 +23,10 @@ public partial class VAWorld
 
     const string DEBUGGER_PLUGIN_SINGLETON_NAME = "VADebuggerPlugin";
 
+    // EditorInterface only exists in editor builds (TOOLS), so exported games compile this to nothing
     void SendViewportCameraToRunningGame()
     {
+#if TOOLS
         if (!Engine.HasSingleton(DEBUGGER_PLUGIN_SINGLETON_NAME))
             return;
 
@@ -44,6 +46,7 @@ public partial class VAWorld
         var debuggerRelay = Engine.GetSingleton(DEBUGGER_PLUGIN_SINGLETON_NAME);
 
         debuggerRelay.Call("sync_viewport_camera", centre, rotation, zoom);
+#endif
     }
 
     // Matches GLFW's glfwGetWindowContentScale. Windows' ScreenGetScale always returns 1, so derive it from the effective monitor DPI instead
