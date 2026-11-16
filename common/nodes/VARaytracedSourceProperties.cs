@@ -244,7 +244,7 @@ public partial class VARaytracedSource
         }
     }
 
-    /// <summary>True if both AmbientOcclusionRayCount and AmbientOcclusionBounceCount are above 0, since no ambient occlusion rays are cast otherwise</summary>
+    /// <summary>True if both AmbientOcclusionRayCount and AmbientOcclusionBounceCount are above 0</summary>
     public bool AmbientOcclusionEnabled => AmbientOcclusionRayCount > 0 && AmbientOcclusionBounceCount > 0;
 
     float _AmbientOcclusionEnergyCap = 0.15f;
@@ -312,7 +312,7 @@ public partial class VARaytracedSource
         }
     }
 
-    /// <summary>True if both AmbientPermeationRayCount and AmbientPermeationBounceCount are above 0, since no ambient permeation rays are cast otherwise</summary>
+    /// <summary>True if both AmbientPermeationRayCount and AmbientPermeationBounceCount are above 0</summary>
     public bool AmbientPermeationEnabled => AmbientPermeationRayCount > 0 && AmbientPermeationBounceCount > 0;
 
     float _AmbientPermeationEnergyCap = 0.15f;

@@ -67,7 +67,7 @@ public partial class VASourceAmbient : ALSourceRelative
 
         if (!warnedNoAmbience && listener != null && listener.Raytraced && !listener.AmbientOcclusionEnabled && !listener.AmbientPermeationEnabled)
         {
-            Logger.LogWarning($"{Name}: The listener '{listener.Name}' has raytraced but does not have ambience enabled, so this VASourceAmbient will never play. Set the listener's ambient occlusion or ambient permeation ray and bounce counts above 0.");
+            Logger.LogWarning($"{Name}: The listener '{listener.Name}' does not have ambience enabled, so this VASourceAmbient will never play. Set the listener's ambient occlusion / permeation ray and bounce counts above 0.");
             warnedNoAmbience = true;
         }
 
