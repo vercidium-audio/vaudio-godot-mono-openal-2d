@@ -44,6 +44,10 @@ public partial class VAVisualisation : Node2D
 
     // The VAEmitter node whose vaudio.Emitter this node drives + renders. Either this node's direct
     // VAEmitter parent, or the internal emitter of a VARaytracedSource parent (VASource etc.).
+    // The world-space position and surface normal of every visualisation ray bounce, emitted every UpdateFrequencyMs. Includes bounces beyond MaxDistance, which only limits rendering
+    [Signal]
+    public delegate void VisualisationDataReceivedEventHandler(Vector2[] positions, Vector2[] normals);
+
     VAEmitter emitter;
 
     MultiMesh multimesh;
@@ -281,7 +285,12 @@ public partial class VAVisualisation : Node2D
     // wrapping the ring-buffer cursor rather than doing any per-instance cleanup.
     void OnVisualisationData(vaudio.VisualisationData[] data)
     {
-        if (multimesh == null || data.Length == 0)
+        if (data.Length == 0)
+            return;
+
+        EmitVisualisationData(data);
+
+        if (multimesh == null)
             return;
 
         int capacity = multimesh.InstanceCount;
@@ -320,6 +329,20 @@ public partial class VAVisualisation : Node2D
         }
 
         multimesh.VisibleInstanceCount = capacity;
+    }
+
+    void EmitVisualisationData(vaudio.VisualisationData[] data)
+    {
+        var positions = new Vector2[data.Length];
+        var normals = new Vector2[data.Length];
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            positions[i] = FromVAudio(data[i].position);
+            normals[i] = FromVAudio(data[i].normal);
+        }
+
+        EmitSignal(SignalName.VisualisationDataReceived, positions, normals);
     }
 
     [ExportGroup("Ray Casting")]
