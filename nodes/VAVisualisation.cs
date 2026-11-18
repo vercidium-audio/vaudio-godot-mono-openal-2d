@@ -42,12 +42,12 @@ public partial class VAVisualisation : Node2D
         }
         """;
 
-    // The VAEmitter node whose vaudio.Emitter this node drives + renders. Either this node's direct
-    // VAEmitter parent, or the internal emitter of a VARaytracedSource parent (VASource etc.).
     // The world-space position and surface normal of every visualisation ray bounce, emitted every UpdateFrequencyMs. Includes bounces beyond MaxDistance, which only limits rendering
     [Signal]
     public delegate void VisualisationDataReceivedEventHandler(Vector2[] positions, Vector2[] normals);
 
+    // The VAEmitter node whose vaudio.Emitter this node drives + renders. Either this node's direct
+    // VAEmitter parent, or the internal emitter of a VARaytracedSource parent (VASource etc.).
     VAEmitter emitter;
 
     MultiMesh multimesh;
