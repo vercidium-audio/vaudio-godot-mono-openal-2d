@@ -13,7 +13,7 @@ const VASourceLeech = preload("res://addons/vaudio-godot-mono-openal-2d/common/n
 
 const ALSourceRelative = preload("res://addons/vaudio-godot-mono-openal-2d/openal/nodes/ALSourceRelative.cs")
 const VASourceRelative = preload("res://addons/vaudio-godot-mono-openal-2d/nodes/VASourceRelative.cs")
-const VASourceAmbient = preload("res://addons/vaudio-godot-mono-openal-2d/common/nodes/VASourceAmbient.cs")
+const VASourceAmbient = preload("res://addons/vaudio-godot-mono-openal-2d/nodes/VASourceAmbient.cs")
 const VAVisualisation = preload("res://addons/vaudio-godot-mono-openal-2d/nodes/VAVisualisation.cs")
 const VAWorld = preload("res://addons/vaudio-godot-mono-openal-2d/world/VAWorld.cs")
 const VADefaultMaterial = preload("res://addons/vaudio-godot-mono-openal-2d/common/nodes/VADefaultMaterial.cs")
