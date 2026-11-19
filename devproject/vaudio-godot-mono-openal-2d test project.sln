@@ -1,0 +1,19 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vaudio-godot-mono-openal-2d test project", "vaudio-godot-mono-openal-2d test project.csproj", "{5B0E6A2D-3C8F-4E1A-9D47-2F6B8C1E7A93}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+	Debug|Any CPU = Debug|Any CPU
+	ExportDebug|Any CPU = ExportDebug|Any CPU
+	ExportRelease|Any CPU = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5B0E6A2D-3C8F-4E1A-9D47-2F6B8C1E7A93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B0E6A2D-3C8F-4E1A-9D47-2F6B8C1E7A93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B0E6A2D-3C8F-4E1A-9D47-2F6B8C1E7A93}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{5B0E6A2D-3C8F-4E1A-9D47-2F6B8C1E7A93}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{5B0E6A2D-3C8F-4E1A-9D47-2F6B8C1E7A93}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{5B0E6A2D-3C8F-4E1A-9D47-2F6B8C1E7A93}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+	EndGlobalSection
+EndGlobal
