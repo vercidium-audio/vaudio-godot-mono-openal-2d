@@ -106,7 +106,7 @@ public partial class VAWorld
     void OnDeviceRecreated()
     {
         // Recreate the reverb effects after the device is recreated
-        listenerReverbEffect = new();
+        listenerReverbEffect = CreateSilentReverbEffect();
     }
 
     void OnDeviceDestroyed()
