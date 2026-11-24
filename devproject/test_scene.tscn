@@ -34,9 +34,8 @@ Size = Vector2(1120, 620)
 MetersPerUnit = 0.1001
 OcclusionRaysLoseEnergyFromWorldBounds = true
 
-[node name="VACustomMaterial" type="Node" parent="VAWorld" unique_id=361924019]
+[node name="Carpet" type="Node" parent="VAWorld" unique_id=361924019]
 script = ExtResource("4_custommaterial")
-MaterialName = "carpet"
 AbsorptionLF = 0.4
 AbsorptionHF = 0.6
 
