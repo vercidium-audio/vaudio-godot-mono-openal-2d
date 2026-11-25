@@ -27,7 +27,7 @@ const VADebuggerPlugin = preload("res://addons/vaudio-godot-mono-openal-2d/commo
 const VADebuggerSingleton = preload("res://addons/vaudio-godot-mono-openal-2d/common/editor/VADebuggerSingleton.gd")
 const VADeviceRefreshInspectorPlugin = preload("res://addons/vaudio-godot-mono-openal-2d/common/editor/VADeviceRefreshInspectorPlugin.gd")
 const VAInspectorTooltipPlugin = preload("res://addons/vaudio-godot-mono-openal-2d/common/editor/VAInspectorTooltipPlugin.gd")
-const VAHRTFExportPlugin = preload("res://addons/vaudio-godot-mono-openal-2d/common/editor/VAHRTFExportPlugin.gd")
+const VABackendExportPlugin = preload("res://addons/vaudio-godot-mono-openal-2d/common/editor/VABackendExportPlugin.gd")
 const VAProjectSettings = preload("res://addons/vaudio-godot-mono-openal-2d/common/editor/VAProjectSettings.gd")
 
 var material_inspector_plugin
@@ -37,7 +37,7 @@ var debugger_plugin
 var debugger_singleton
 var device_refresh_inspector_plugin
 var inspector_tooltip_plugin
-var hrtf_export_plugin
+var backend_export_plugin
 
 const DEBUGGER_PLUGIN_SINGLETON_NAME = "VADebuggerPlugin"
 
@@ -84,8 +84,8 @@ func _enter_tree():
 	inspector_tooltip_plugin = VAInspectorTooltipPlugin.new()
 	add_inspector_plugin(inspector_tooltip_plugin)
 
-	hrtf_export_plugin = VAHRTFExportPlugin.new()
-	add_export_plugin(hrtf_export_plugin)
+	backend_export_plugin = VABackendExportPlugin.new()
+	add_export_plugin(backend_export_plugin)
 
 	conversion_context_menu_plugin = VAConversionContextMenuPlugin.new()
 	add_context_menu_plugin(EditorContextMenuPlugin.CONTEXT_SLOT_SCENE_TREE, conversion_context_menu_plugin)
@@ -135,9 +135,9 @@ func _exit_tree():
 		remove_inspector_plugin(inspector_tooltip_plugin)
 		inspector_tooltip_plugin = null
 
-	if hrtf_export_plugin:
-		remove_export_plugin(hrtf_export_plugin)
-		hrtf_export_plugin = null
+	if backend_export_plugin:
+		remove_export_plugin(backend_export_plugin)
+		backend_export_plugin = null
 
 	if Engine.has_singleton(DEBUGGER_PLUGIN_SINGLETON_NAME):
 		Engine.unregister_singleton(DEBUGGER_PLUGIN_SINGLETON_NAME)
