@@ -15,13 +15,21 @@ public static unsafe partial class ALManager
             Console.WriteLine(message);
             GD.Print(message);
         };
-        OpenAL.Logger.Error = (message) =>
-        {
-            Console.Error.WriteLine(message);
-            GD.PushError(message);
-        };
+        OpenAL.Logger.Error = LogBackendError;
 
         CreateDeviceAndContext();
+    }
+
+    static int _errorCount;
+
+    // How many OpenAL errors have been logged since the game started, so tests can check a run hit no backend errors
+    public static int ErrorCount => Volatile.Read(ref _errorCount);
+
+    // Logs a failed OpenAL call and counts it in ErrorCount
+    internal static void LogBackendError(string message)
+    {
+        Interlocked.Increment(ref _errorCount);
+        LogError(message);
     }
 
     public static void Update()
