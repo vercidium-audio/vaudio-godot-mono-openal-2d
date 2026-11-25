@@ -1,4 +1,4 @@
-// Human-reviewed
+// Human-created
 
 namespace vaudio_godot_mono_openal;
 
@@ -13,10 +13,11 @@ public static partial class VAAudioBackend
     {
         set
         {
-            // Top-down: rotation 0 faces screen-up. Up is -Z because Godot's Y-down XY plane is mirrored relative to the backends' right-handed space.
+            // Map from godot-space to AL/FMOD space
             var forward = new Vector3(Mathf.Sin(value), -Mathf.Cos(value), 0);
+            var up = new Vector3(0, 0, -1);
 
-            Backend?.SetListenerOrientation(forward, new Vector3(0, 0, -1));
+            Backend?.SetListenerOrientation(forward, up);
         }
     }
 }
