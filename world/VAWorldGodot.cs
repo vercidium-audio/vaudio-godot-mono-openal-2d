@@ -61,10 +61,10 @@ public partial class VAWorld
         world.AirAbsorption.Temperature = Temperature;
         world.AirAbsorption.Pressure = Pressure;
 
-        // Create reverb buses
+        // Create reverb effects
         OnDeviceRecreated();
 
-        // Register for device destroyed/recreated callbacks to clean up and recreate reverb buses
+        // Register for device destroyed/recreated callbacks to clean up and recreate reverb effects
         RegisterDeviceRecreatedCallback(OnDeviceRecreated);
         RegisterDeviceDestroyedCallback(OnDeviceDestroyed);
 
