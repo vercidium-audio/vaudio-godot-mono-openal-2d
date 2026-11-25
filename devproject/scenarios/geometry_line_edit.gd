@@ -1,3 +1,5 @@
+# AI-created
+
 extends "res://scenarios/lib/scenario.gd"
 
 # Edits a sealed Line2D partition's points, applied with VAWorld.sync_primitive. A Line2D is a zero-thickness open polyline using flat transmission. Every built-in material only loses 10% LF / 25% HF per touch, which leaves more energy than the permeation cap, so brick is made fully opaque here to be able to see the line block anything. That silences LF too, and the plugins report HF relative to LF (clamped at LF 0.01), so the sealed checks use LF

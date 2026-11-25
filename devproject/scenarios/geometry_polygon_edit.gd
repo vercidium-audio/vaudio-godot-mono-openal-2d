@@ -1,3 +1,5 @@
+# AI-created
+
 extends "res://scenarios/lib/scenario.gd"
 
 # Edits a sealed Polygon2D partition's polygon. There's no change signal for it, so the edit is applied with VAWorld.sync_primitive, same as metadata changes

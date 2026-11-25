@@ -1,3 +1,5 @@
+# AI-created
+
 extends "res://scenarios/lib/scenario.gd"
 
 # Walks a clustered source out of a group, through a doorway into the listener's half of the room, around the corner and back. It should share the group's muffling and grouped EAX slot while parked with it, leave the cluster once it's through the doorway, and rejoin when it walks back. Run with --listen to hear the transitions
