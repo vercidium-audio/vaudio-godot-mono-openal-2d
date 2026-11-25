@@ -16,7 +16,8 @@ public partial class VAWorld
         if (Engine.IsEditorHint())
             return;
 
-        ALManager.Ensure();
+        VAAudioBackend.Ensure();
+        ApplyBackendSettings();
 
         // Cache the scene root since we access it often
         SceneRoot = GetTree().CurrentScene as Node2D;
@@ -60,10 +61,10 @@ public partial class VAWorld
         world.AirAbsorption.Temperature = Temperature;
         world.AirAbsorption.Pressure = Pressure;
 
-        // Create reverb effects
+        // Create reverb buses
         OnDeviceRecreated();
 
-        // Register for device destroyed/recreated callbacks to clean up and recreate reverb effects
+        // Register for device destroyed/recreated callbacks to clean up and recreate reverb buses
         RegisterDeviceRecreatedCallback(OnDeviceRecreated);
         RegisterDeviceDestroyedCallback(OnDeviceDestroyed);
 
@@ -103,27 +104,6 @@ public partial class VAWorld
             Skew = 0f;
     }
 
-    void OnDeviceRecreated()
-    {
-        // Recreate the reverb effects after the device is recreated
-        listenerReverbEffect = CreateSilentReverbEffect();
-    }
-
-    void OnDeviceDestroyed()
-    {
-        // Delete all reverb effects - they contain OpenAL resources that are now invalid
-        ambientFilter?.Delete();
-        ambientFilter = null;
-
-        listenerReverbEffect?.Dispose();
-        listenerReverbEffect = null;
-
-        foreach (var effect in groupedReverbEffects)
-            effect.Dispose();
-
-        groupedReverbEffects.Clear();
-    }
-
     bool listeningToTree;
 
     void InitializeScene()
@@ -150,8 +130,8 @@ public partial class VAWorld
         if (Engine.IsEditorHint())
             return;
 
-        ALManager.UnregisterDeviceDestroyedCallback(OnDeviceDestroyed);
-        ALManager.UnregisterDeviceRecreatedCallback(OnDeviceRecreated);
+        VAAudioBackend.UnregisterDeviceDestroyedCallback(OnDeviceDestroyed);
+        VAAudioBackend.UnregisterDeviceRecreatedCallback(OnDeviceRecreated);
 
         if (listeningToTree)
         {
@@ -204,14 +184,14 @@ public partial class VAWorld
         }
         else
         {
-            // Sync the AL listener to our main listener
-            ALManager.ListenerPosition = listener.GlobalPosition;
-            ALManager.ListenerRotation = listener.GlobalRotation;
+            // Sync the backend listener to our main listener
+            VAAudioBackend.ListenerPosition = listener.GlobalPosition;
+            VAAudioBackend.ListenerRotation = listener.GlobalRotation;
         }
 
         FollowBounds();
 
-        ALManager.Update();
+        VAAudioBackend.Update();
         world.Update();
     }
 
