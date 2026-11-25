@@ -10,6 +10,9 @@ extends Node
 #   --backend=name    the audio backend the project runs on (default openal; godottest --backend selects it via override.cfg). Scenarios whose requires_backends doesn't include it are skipped
 #   --backend-smoke   only run scenarios with backend_smoke set (the playback-related ones), for checking a non-default backend
 # Skipped scenarios print "[devproject] SKIP name: reason", even when named in --scenarios=, and the run fails if every scenario was skipped
+# A scenario also fails if the audio backend's error count (VA.backend_error_count) went up while it ran, so "no backend errors" is checked on every backend
+
+const VA := preload("res://scenarios/lib/va.gd")
 
 const TEST_PASSED_MARKER := "[devproject] Test passed"
 const ARCH_MARKER := "[devproject] arch"
@@ -95,12 +98,16 @@ func _run_scenarios() -> void:
 
 		scenario.root = await _open_scene(scenario.scene)
 		error_capture.take()
+		var backend_errors_before := _backend_error_count()
 		await scenario.setup()
 		await scenario.run()
 		await scenario.teardown()
 
 		current_scenario = ""
 		_check_errors(scenario, error_capture.take())
+		var backend_errors := _backend_error_count() - backend_errors_before
+		if backend_errors > 0:
+			scenario.fail("the %s backend logged %d error(s)" % [backend, backend_errors])
 
 		if scenario.failure.is_empty():
 			print("[devproject] PASS %s" % scenario_name)
@@ -122,6 +129,10 @@ func _skip_reason(scenario, backend: String, backend_smoke: bool) -> String:
 	if backend_smoke and not scenario.backend_smoke:
 		return "not a backend smoke scenario"
 	return ""
+
+# Read through the current scene's world rather than scenario.root's, since a scenario may change scenes and free its root
+func _backend_error_count() -> int:
+	return VA.backend_error_count(get_tree().current_scene.world)
 
 # Every expected error/warning must have been logged, and any other error fails the scenario. Unexpected warnings are allowed, same as in godottest.cs
 func _check_errors(scenario, logged: Dictionary) -> void:

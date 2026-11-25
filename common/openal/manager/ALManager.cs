@@ -23,12 +23,12 @@ public static unsafe partial class ALManager
     static int _errorCount;
 
     // How many OpenAL errors have been logged since the game started, so tests can check a run hit no backend errors
-    public static int ErrorCount => Volatile.Read(ref _errorCount);
+    public static int ErrorCount => System.Threading.Volatile.Read(ref _errorCount);
 
     // Logs a failed OpenAL call and counts it in ErrorCount
     internal static void LogBackendError(string message)
     {
-        Interlocked.Increment(ref _errorCount);
+        System.Threading.Interlocked.Increment(ref _errorCount);
         LogError(message);
     }
 
