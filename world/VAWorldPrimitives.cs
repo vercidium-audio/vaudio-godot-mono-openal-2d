@@ -1,4 +1,4 @@
-// Human-reviewed
+// AI-created
 
 // Human-reviewed
 
@@ -99,9 +99,7 @@ public partial class VAWorld
                 wrapper.Watcher = null;
             }
 
-            if (wrapper.ShapeCallable is Callable shapeCallable && node is CollisionShape2D cs && cs.Shape != null)
-                if (cs.Shape.IsConnected(Resource.SignalName.Changed, shapeCallable))
-                    cs.Shape.Disconnect(Resource.SignalName.Changed, shapeCallable);
+            wrapper.DisconnectChanged();
 
             world.RemovePrimitive(wrapper.Primitive);
             ReleaseSharedPolygon(wrapper.SharedGeometry as SharedPolygon);
@@ -248,11 +246,7 @@ public partial class VAWorld
             var wrapper = AttachWatcher(collisionShape, prim, update);
             wrapper.SharedGeometry = sharedPolygon;
 
-            // Editing the shape resource (size, radius, points etc) doesn't move the node, so the watcher won't see it
-            Action onShapeChanged = shape is ConvexPolygonShape2D or ConcavePolygonShape2D ? () => RebuildCollisionShapePrimitive(collisionShape) : update;
-            var callable = Callable.From(onShapeChanged);
-            shape.Connect(Resource.SignalName.Changed, callable);
-            wrapper.ShapeCallable = callable;
+            wrapper.ConnectChanged(shape, shape is ConvexPolygonShape2D or ConcavePolygonShape2D ? () => RebuildCollisionShapePrimitive(collisionShape) : update);
 
             collisionShape.SetMeta(PRIMITIVE_META_KEY, wrapper);
         }
