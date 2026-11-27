@@ -1,6 +1,7 @@
 .godot/
 addons/
 *.csproj.user
+.vs/
 
 # Copied to the project root by plugin.gd
 soft_oal.dll

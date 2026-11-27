@@ -25,8 +25,8 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="openal_soft_bindings" Version="1.0.10" Condition="'$(VaudioBackend)' == 'OpenAL'" />
-        <Compile Remove="$(VaudioAddonDir)\common\backend\openal\**" Condition="'$(VaudioBackend)' != 'OpenAL'" />
-        <Compile Remove="$(VaudioAddonDir)\common\backend\fmod\**" Condition="'$(VaudioBackend)' != 'FMOD'" />
+        <!--<Compile Remove="$(VaudioAddonDir)\common\backend\openal\**" Condition="'$(VaudioBackend)' != 'OpenAL'" />-->
+        <!--<Compile Remove="$(VaudioAddonDir)\common\backend\fmod\**" Condition="'$(VaudioBackend)' != 'FMOD'" />-->
     </ItemGroup>
     <!-- end vaudio audio backend -->
 </Project>
