@@ -1,4 +1,4 @@
-// Human-reviewed
+// Human-created
 
 namespace vaudio_godot_mono_openal;
 
@@ -10,8 +10,7 @@ public partial class VAWorld
     {
         SetNotifyTransform(true);
 
-        // A VAWorld can only have a position, however it may inherit rotation/scale when being unparented from another node.
-        // Reset rotation/scale here so the editor and debug window always match
+        // Remove rotation/scale (world bounds is always axis aligned)
         NormalizeTransform();
         ReclampBoundsSize();
 
@@ -21,16 +20,16 @@ public partial class VAWorld
         VAAudioBackend.Ensure();
         ApplyBackendSettings();
 
-        // Cache the scene root since we access it often
+        // Cache the scene root for quick access
         SceneRoot = GetTree().CurrentScene as Node2D;
 
         world = new();
 
-        // Godot's 2D canvas is Y-down; tell the debug window so its render + viewport sync match.
         world.CoordinateSystem = vaudio.CoordinateSystem.Godot2D;
-
         world.Name = ResolvedWorldName;
         world.LogCallback = LogSDK;
+
+        // Set world pos and size
         boundsPosition = Position;
         PlaceBounds();
         world.Size = ToVAudio(Size);
@@ -55,7 +54,7 @@ public partial class VAWorld
         world.MaximumConcurrencyLevel = MaximumConcurrencyLevel == 0 ? vaudio.ThreadStatistics.BackgroundThreadCount : MaximumConcurrencyLevel;
         world.WorkItemCount = WorkItemCount;
 
-        // Re-run the setter now that the world exists. Handles gl_compatibility and Mac restrictions
+        // Re-run the setter now that the world exists
         RenderingEnabled = _RenderingEnabled;
         world.VisualisationScale = _VisualisationScale;
 
@@ -66,12 +65,11 @@ public partial class VAWorld
         // Create reverb effects
         OnDeviceRecreated();
 
-        // Register for device destroyed/recreated callbacks to clean up and recreate reverb effects
         RegisterDeviceRecreatedCallback(OnDeviceRecreated);
         RegisterDeviceDestroyedCallback(OnDeviceDestroyed);
 
-        // Wait a frame for the scene to be fully loaded
-        CallDeferred(nameof(InitializeScene));
+        // Wait for the scene to initialise before adding primitives
+        CallDeferred(nameof(InitializeSceneDeferred));
 
         RegisterDebuggerCapture();
     }
@@ -83,11 +81,10 @@ public partial class VAWorld
 
         NormalizeTransform();
 
-        // Godot 2D only sends the next transform notification once something has read the global transform
+        // 2D Godot 2D only sends transform notifications after reading the global transform
         GetGlobalTransform();
 
-        // Redraw the bounds gizmo whenever the node moves, whether from the viewport gizmo,
-        // the Inspector's Position field, or code.
+        // Redraw the bounds gizmo
         QueueRedraw();
 
         if (world != null && _BoundsFollow != VABoundsFollow.Listener)
@@ -108,14 +105,13 @@ public partial class VAWorld
 
     bool listeningToTree;
 
-    void InitializeScene()
+    void InitializeSceneDeferred()
     {
-        // The scene can change again before this deferred call runs
+        // This is a deferred call, so ensure we're still in the tree
         if (!IsInsideTree())
             return;
 
-        // SceneRoot can be null if this node isn't under CurrentScene (e.g. added as a sibling autoload) -
-        // scan from the tree root instead so primitives already baked into the scene aren't missed.
+        // Scan from the tree root so all primitives are included
         Node root = GetTree().Root;
 
         foreach (var child in root.GetChildren())
@@ -144,7 +140,6 @@ public partial class VAWorld
 
         UnregisterDebuggerCapture();
 
-        // Remove vercidium_audio_* metadata fields from all nodes in the scene.
         // SceneRoot can be null if the tree has no scene loaded (e.g. exiting during shutdown).
         if (SceneRoot != null)
             RemovePrimitive(SceneRoot, true);
@@ -153,7 +148,7 @@ public partial class VAWorld
     }
 
     // This fires for the new parent node AND each of its child nodes separately
-    //  Parent node is invoked first
+    // Note the PARENT node is always invoked first
     void OnNodeAdded(Node node)
     {
         ResolveInherited(node, out var material, out var useFlatTransmission, out var filter);
@@ -161,7 +156,7 @@ public partial class VAWorld
     }
 
     // This fires for the new parent node AND each of its child nodes separately
-    //  Child nodes are invoked first
+    // Note the CHILD nodes are always invoked first
     void OnNodeRemoved(Node node) => RemovePrimitive(node, false);
 
     internal bool NoListenerWarningLogged;
@@ -186,7 +181,7 @@ public partial class VAWorld
         }
         else
         {
-            // Sync the backend listener to our main listener
+            // Sync the OpenAL/FMOD listener to our main listener
             VAAudioBackend.ListenerPosition = listener.GlobalPosition;
             VAAudioBackend.ListenerRotation = listener.GlobalRotation;
         }
@@ -196,5 +191,4 @@ public partial class VAWorld
         VAAudioBackend.Update();
         world.Update();
     }
-
 }
